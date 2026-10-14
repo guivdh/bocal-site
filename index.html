@@ -34,7 +34,7 @@
     <a href="#vie-privee">Vie privée</a>
     <a href="#faq">Questions</a>
   </nav>
-  <button class="sound" type="button" aria-pressed="false" data-sound>
+  <button class="sound" type="button" aria-pressed="true" data-sound>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.6 7.6 0 0 1 0 11"/><path class="mute" d="M16 9.5l5 5m0-5l-5 5"/></svg>
     <span class="sound-label">Son</span>
   </button>
@@ -79,9 +79,15 @@
         <p class="cap-title">Viens voir <mark>dedans</mark>.</p>
       </div>
 
-      <div class="scroll-hint" data-show="0,0.03" aria-hidden="true">
-        <span class="mouse"><i></i></span>
-        <span>Fais défiler</span>
+      <div class="dock" data-show="0,0.8">
+        <button class="dock-back is-hidden" type="button" data-step="-1" aria-label="Étape précédente">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m0 0l-6 6m6-6l6 6"/></svg>
+        </button>
+        <button class="dock-next" type="button" data-step="1">
+          <span class="dock-label">C'est parti</span>
+          <span class="dock-count">1 / 5</span>
+          <span class="dock-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14m0 0l-6-6m6 6l6-6"/></svg></span>
+        </button>
       </div>
       <a class="skip-intro" href="#bienvenue" data-show="0.02,0.86">Passer l'intro</a>
       <nav class="beats" data-show="0,0.86" aria-label="Étapes de l'intro">

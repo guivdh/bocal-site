@@ -1571,7 +1571,7 @@
     [0.84, [0, 185, 38, 3, 3, 0, 89, 0, 0]],
   ];
   const KEYS_PORTRAIT = [
-    [0.0, [-4, 152, 0, 172, 150, 10, 4, 0, -0.19]],
+    [0.0, [-4, 152, 0, 172, 150, 10, 4, 0, -0.23]],
     [0.09, [44, 98, 72, 112, 130, 18, 9, 0, -0.1]],
     [0.2, [48, 100, 82, 100, 120, 14, 10, 0, -0.1]],
     [0.29, [22, 150, 30, 100, 90, 6, 8, 0, -0.04]],
@@ -1664,14 +1664,26 @@
     ctx.fillRect(0, 0, W, H);
   }
 
-  const SOUNDS = [
-    [0.3, 'pop'], [0.336, 'poc'], [0.352, 'lid'], [0.515, 'tick'], [0.53, 'tick'], [0.545, 'tick'], [0.56, 'tick'], [0.572, 'pop'], [0.8, 'chime'],
-  ];
+  const SOUNDS = [];
+  {
+    const step = (CHAT_T1 - CHAT_T0) / CHAT.length;
+    const melody = [0, 2, 1, 3, 2, 4, 3, 5, 4, 6, 5, 7, 6, 7];
+    CHAT.forEach((m, i) => SOUNDS.push([CHAT_T0 + (i + 0.12) * step, m.link ? 'msgLink' : m.me ? 'msgMe' : 'msg', melody[i % melody.length], 0.3]));
+    SOUNDS.push([RESCUE, 'sparkle', 1, 0.25], [0.258, 'glide', 1, 0], [0.3, 'pop', 1, 0], [0.336, 'poc', 1, 0], [0.352, 'lid', 1, 0], [0.468, 'clink', 1, 0]);
+    for (let k = 0; k < 10; k++) SOUNDS.push([0.503 + k * 0.0062, 'tick', 1 + k * 0.03, 0]);
+    SOUNDS.push([0.572, 'pop', 1.25, 0], [0.586, 'harp', 1, 0], [0.79, 'chime', 1, 0]);
+    for (const it of inner) {
+      const q = (it.d - 60) / 1300;
+      if (q > 0 && q < 1) SOUNDS.push([0.815 + q * 0.135, 'pass', 0.85 + (it.r - 70) / 400, Math.cos(it.a + q * 0.8) * 0.75]);
+    }
+    SOUNDS.push([0.955, 'arrive', 1, 0]);
+    SOUNDS.sort((a, b) => a[0] - b[0]);
+  }
   let lastSoundP = 0;
   function sounds(p) {
     const audio = window.BocalSound;
     if (audio && p > lastSoundP && p - lastSoundP < 0.04) {
-      for (const [at, name] of SOUNDS) if (lastSoundP < at && p >= at) audio.play(name);
+      for (const [at, name, k, pan] of SOUNDS) if (lastSoundP < at && p >= at) audio.play(name, k, pan);
     }
     lastSoundP = p;
   }
@@ -1708,6 +1720,9 @@
   const BEATS = [0, 0.212, 0.372, 0.492, 0.7];
   const BEAT_MS = [2600, 2300, 1700, 2500, 2700];
   const beatButtons = [...document.querySelectorAll('[data-beat]')];
+  const dockNext = document.querySelector('.dock-next');
+  const dockBack = document.querySelector('.dock-back');
+  const DOCK_LABELS = ["C'est parti", 'Suivant', 'Suivant', 'Suivant', 'Plonger dedans'];
   let pilot = null, shownBeat = -1;
 
   function markBeat(p) {
@@ -1716,6 +1731,11 @@
     if (best === shownBeat) return;
     shownBeat = best;
     beatButtons.forEach((b, i) => (i === best ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current')));
+    if (dockNext) {
+      dockNext.querySelector('.dock-label').textContent = DOCK_LABELS[best];
+      dockNext.querySelector('.dock-count').textContent = `${best + 1} / ${BEATS.length}`;
+      dockBack.classList.toggle('is-hidden', best === 0);
+    }
   }
 
   const stageEl = canvas.closest('.stage') || journey;
@@ -1959,6 +1979,11 @@
     }, 180);
   }
   addEventListener('scroll', () => { if (!pilot) settle(); }, { passive: true });
+
+  if (dockNext) {
+    dockNext.addEventListener('click', () => go(1));
+    dockBack.addEventListener('click', () => go(-1));
+  }
 
   beatButtons.forEach((b) => b.addEventListener('click', () => {
     const i = +b.dataset.beat;

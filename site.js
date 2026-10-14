@@ -10,7 +10,7 @@
   const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
   const Sound = (() => {
-    let ac = null, master = null, noise = null, on = false;
+    let ac = null, master = null, noise = null, on = true, unlocked = false;
     function ensure() {
       if (!ac) {
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -33,18 +33,18 @@
       g.gain.exponentialRampToValueAtTime(peak, t + attack);
       g.gain.exponentialRampToValueAtTime(0.0001, t + attack + decay);
     }
-    function tone(freq, t, vol, decay, drop = 1.45) {
+    function tone(freq, t, vol, decay, drop, dest, type = 'sine', attack = 0.003) {
       const o = ac.createOscillator();
-      o.type = 'sine';
+      o.type = type;
       o.frequency.setValueAtTime(freq * drop, t);
-      o.frequency.exponentialRampToValueAtTime(freq, t + 0.02);
+      if (drop !== 1) o.frequency.exponentialRampToValueAtTime(freq, t + 0.02);
       const g = ac.createGain();
-      env(g, t, 0.003, decay, vol);
-      o.connect(g).connect(master);
+      env(g, t, attack, decay, vol);
+      o.connect(g).connect(dest);
       o.start(t);
-      o.stop(t + decay + 0.05);
+      o.stop(t + attack + decay + 0.05);
     }
-    function click(freq, t, vol, decay) {
+    function click(freq, t, vol, decay, dest) {
       const n = ac.createBufferSource();
       n.buffer = noise;
       const bp = ac.createBiquadFilter();
@@ -53,42 +53,98 @@
       bp.Q.value = 1.1;
       const g = ac.createGain();
       env(g, t, 0.001, decay, vol);
-      n.connect(bp).connect(g).connect(master);
+      n.connect(bp).connect(g).connect(dest);
       n.start(t);
       n.stop(t + decay + 0.03);
     }
-    function wood(freq, t, vol = 0.32, decay = 0.16) {
-      tone(freq, t, vol, decay);
-      tone(freq * 2.76, t, vol * 0.18, decay * 0.35, 1);
-      click(freq * 3.2, t, vol * 0.16, 0.02);
+    function wood(freq, t, vol, decay, dest) {
+      tone(freq, t, vol, decay, 1.45, dest);
+      tone(freq * 2.76, t, vol * 0.18, decay * 0.35, 1, dest);
+      click(freq * 3.2, t, vol * 0.16, 0.02, dest);
     }
+    function bloop(freq, t, vol, dest) {
+      const o = ac.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(freq * 0.78, t);
+      o.frequency.exponentialRampToValueAtTime(freq, t + 0.035);
+      const g = ac.createGain();
+      env(g, t, 0.004, 0.14, vol);
+      o.connect(g).connect(dest);
+      o.start(t);
+      o.stop(t + 0.2);
+      tone(freq * 2, t + 0.012, vol * 0.14, 0.06, 1, dest);
+    }
+    function bell(freq, t, vol, decay, dest) {
+      tone(freq, t, vol, decay, 1, dest, 'triangle', 0.004);
+      tone(freq * 2.01, t, vol * 0.25, decay * 0.45, 1, dest);
+    }
+    function output(pan) {
+      if (!pan || !ac.createStereoPanner) return master;
+      const p = ac.createStereoPanner();
+      p.pan.value = Math.max(-1, Math.min(1, pan));
+      p.connect(master);
+      return p;
+    }
+    const NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.5];
     const sounds = {
-      poc: (t, k = 1) => wood(560 * k, t),
-      tick: (t) => wood(1350, t, 0.1, 0.05),
-      lid: (t) => { wood(300, t, 0.34, 0.2); tone(120, t, 0.18, 0.1, 1.6); },
-      pop: (t) => { click(900, t, 0.22, 0.05); tone(210, t, 0.2, 0.09, 1.8); wood(720, t + 0.035, 0.22, 0.12); },
-      chime: (t) => { [784, 988, 1175, 1568].forEach((f, i) => wood(f, t + i * 0.085, 0.16, 0.5)); },
+      poc: (t, k, d) => wood(560 * k, t, 0.32, 0.16, d),
+      tick: (t, k, d) => wood(1350 * k, t, 0.09, 0.045, d),
+      lid: (t, k, d) => { wood(300, t, 0.34, 0.2, d); tone(120, t, 0.18, 0.1, 1.6, d); },
+      pop: (t, k, d) => { click(900, t, 0.22, 0.05, d); tone(210, t, 0.2, 0.09, 1.8, d); wood(720 * k, t + 0.035, 0.22, 0.12, d); },
+      chime: (t, k, d) => [784, 988, 1175, 1568].forEach((f, i) => wood(f, t + i * 0.085, 0.14, 0.5, d)),
+      msg: (t, k, d) => bloop(NOTES[Math.round(k) % NOTES.length], t, 0.13, d),
+      msgMe: (t, k, d) => bloop(392, t, 0.12, d),
+      msgLink: (t, k, d) => { bell(1046.5, t, 0.1, 0.35, d); bell(1318.5, t + 0.1, 0.1, 0.55, d); },
+      sparkle: (t, k, d) => [2093, 2637, 3136, 4186].forEach((f, i) => bell(f, t + i * 0.04, 0.03, 0.45, d)),
+      glide: (t, k, d) => [784, 988, 1175].forEach((f, i) => wood(f, t + i * 0.07, 0.09, 0.18, d)),
+      clink: (t, k, d) => { tone(2400, t, 0.05, 0.22, 1, d); tone(3620, t, 0.03, 0.16, 1, d); click(5000, t, 0.025, 0.015, d); },
+      harp: (t, k, d) => [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568].forEach((f, i) => bell(f, t + i * 0.075, 0.06, 1.1, d)),
+      pass: (t, k, d) => bell(1568 * k, t, 0.04, 0.22, d),
+      arrive: (t, k, d) => { wood(261.6, t, 0.18, 0.5, d); [523.25, 659.25, 783.99].forEach((f) => bell(f, t + 0.02, 0.06, 1.4, d)); wood(1046.5, t + 0.12, 0.09, 0.4, d); },
     };
-    function play(name, k) {
-      if (!on || !ensure()) return;
-      const fn = sounds[name];
-      if (fn) fn(ac.currentTime + 0.01, k);
-    }
-    function setOn(value) {
-      on = value;
-      if (on && ensure()) play('poc');
+    function refresh() {
       for (const b of $$('[data-sound]')) {
         b.setAttribute('aria-pressed', String(on));
         b.setAttribute('aria-label', on ? 'Couper le son' : 'Activer le son');
+        b.classList.toggle('needs-tap', on && !unlocked);
       }
     }
-    return { play, setOn, get on() { return on; } };
+    function unlock() {
+      if (unlocked || !on) return;
+      if (ensure()) unlocked = true;
+      refresh();
+    }
+    function play(name, k = 1, pan = 0) {
+      if (!on || !unlocked || !ac) return;
+      if (ac.state === 'suspended') ac.resume();
+      const fn = sounds[name];
+      if (fn) fn(ac.currentTime + 0.012, k ?? 1, output(pan));
+    }
+    function setOn(value) {
+      on = value;
+      if (on) {
+        unlock();
+        play('poc');
+      }
+      refresh();
+    }
+    refresh();
+    return { play, setOn, unlock, get on() { return on; }, get unlocked() { return unlocked; } };
   })();
   window.BocalSound = Sound;
   for (const b of $$('[data-sound]')) {
-    b.setAttribute('aria-label', 'Activer le son');
-    b.addEventListener('click', () => Sound.setOn(!Sound.on));
+    b.addEventListener('click', () => {
+      if (Sound.on && !Sound.unlocked) {
+        Sound.unlock();
+        Sound.play('poc');
+      } else Sound.setOn(!Sound.on);
+    });
   }
+  const unlockSound = (e) => {
+    if (e.target && e.target.closest && e.target.closest('[data-sound]')) return;
+    Sound.unlock();
+  };
+  for (const type of ['pointerdown', 'keydown', 'touchend']) addEventListener(type, unlockSound, { capture: true, passive: true });
 
   if (PLAY_URL) {
     for (const a of $$('[data-store]')) a.href = PLAY_URL;
@@ -333,6 +389,7 @@
     tokens: [],
     on: false,
     run: 0,
+    rounds: 0,
   };
   const ARRIVALS = [
     { who: 'Léa', av: '.la-1', dish: 'mezze', title: 'Mezze libanais à partager' },
@@ -381,7 +438,7 @@
       frames.push({ transform: `translate(${x - cw / 2}px, ${y - ch / 2}px) rotate(${rot}deg) scale(${s})`, opacity: t > 0.9 ? (1 - t) * 10 : 1 });
     }
     const anim = card.animate(frames, { duration: 1050, easing: 'cubic-bezier(.45,.05,.55,.95)', fill: 'forwards' });
-    setTimeout(() => { if (run === live.run) { restart($('.jar-lid', live.jar), 'hop'); Sound.play('pop'); } }, 430);
+    setTimeout(() => { if (run === live.run) { restart($('.jar-lid', live.jar), 'hop'); if (!live.rounds) Sound.play('pop'); } }, 430);
     await anim.finished.catch(() => {});
     card.remove();
     if (run !== live.run) return;
@@ -392,7 +449,7 @@
     restart(live.count, 'bump');
     live.feed.prepend(feedRow(a));
     while (live.feed.children.length > 3) live.feed.lastElementChild.remove();
-    Sound.play('poc', 1 + live.tokens.length * 0.03);
+    if (!live.rounds) Sound.play('poc', 1 + live.tokens.length * 0.03);
   }
 
   async function liveLoop() {
@@ -406,6 +463,7 @@
         await wait(1300);
       }
       await wait(2400);
+      live.rounds++;
       if (!live.on || run !== live.run) return;
       for (const li of [...live.feed.children]) li.classList.add('out');
       await wait(420);
