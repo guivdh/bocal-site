@@ -17,11 +17,24 @@
 <link rel="preload" href="fonts/DMSans-ExtraBold.woff" as="font" type="font/woff" crossorigin>
 <link rel="preload" href="fonts/DMSans-Bold.woff" as="font" type="font/woff" crossorigin>
 <link rel="stylesheet" href="style.css">
-<noscript><style>.cap-hero{opacity:1;visibility:visible;transform:translateY(-50%)}.journey{height:100svh}.reveal{opacity:1;transform:none}</style></noscript>
+<noscript><style>.loader{display:none}.cap-hero{opacity:1;visibility:visible;transform:translateY(-50%)}.journey{height:100svh}.reveal{opacity:1;transform:none}</style></noscript>
 <script src="site.js" defer></script>
 <script src="room.js" defer></script>
 </head>
 <body class="in-room">
+<div class="loader" id="loader" aria-hidden="true">
+  <svg class="loader-jar" viewBox="0 0 100 132">
+    <defs><linearGradient id="loader-ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#F9A825"/><stop offset=".5" stop-color="#E1306C"/><stop offset="1" stop-color="#7B3FE4"/></linearGradient></defs>
+    <rect x="6" y="24" width="88" height="104" rx="27" class="ld-glass"/>
+    <rect x="15" y="36" width="6" height="30" rx="3" fill="#fff" opacity=".7"/>
+    <rect x="21" y="94" width="24" height="24" rx="7" fill="url(#loader-ig)" class="ld-tk ld-tk1"/>
+    <rect x="52" y="96" width="24" height="24" rx="7" fill="#FCE8B2" class="ld-tk ld-tk2"/>
+    <rect x="37" y="68" width="24" height="24" rx="7" fill="#D6EBD3" class="ld-tk ld-tk3"/>
+    <g class="ld-lid"><rect x="19" y="7" width="62" height="17" rx="5"/></g>
+  </svg>
+  <p class="loader-word">bocal</p>
+  <div class="loader-bar"><i></i></div>
+</div>
 <a class="skip-link" href="#bienvenue">Aller au contenu</a>
 
 <header class="top" id="top">

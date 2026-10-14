@@ -1724,6 +1724,8 @@
   const dockBack = document.querySelector('.dock-back');
   const DOCK_LABELS = ["C'est parti", 'Suivant', 'Suivant', 'Suivant', 'Plonger dedans'];
   let pilot = null, shownBeat = -1;
+  const loader = document.getElementById('loader');
+  let introReady = !loader;
 
   function markBeat(p) {
     let best = 0;
@@ -1748,7 +1750,7 @@
   }
 
   function updateDom(p) {
-    for (const c of captions) {
+    for (const c of introReady ? captions : []) {
       const on = p >= c.a && p <= c.b;
       if (on !== c.on) { c.on = on; c.el.classList.toggle('is-on', on); }
     }
@@ -1771,10 +1773,10 @@
     const cap = Math.sqrt(MAX_PIXELS / Math.max(1, W * H));
     dpr = Math.max(0.6, Math.min(want, cap) * quality);
     const cw = Math.round(W * dpr), ch = Math.round(H * dpr);
-    if (canvas.width !== cw || canvas.height !== ch) {
-      canvas.width = cw;
-      canvas.height = ch;
-    }
+    if (canvas.width === cw && canvas.height === ch) return false;
+    canvas.width = cw;
+    canvas.height = ch;
+    return true;
   }
 
   let journeyTop = 0, journeyHeight = 1;
@@ -1796,14 +1798,16 @@
   let running = false;
   let cost = 6, drawn = 0, skip = false;
 
+  let lastAdapt = 0;
   function adapt() {
-    if (cost > 9 && quality > 0.62) {
-      quality = Math.max(0.6, quality * 0.85);
-      resize();
-    } else if (cost < 4 && quality < 1) {
-      quality = Math.min(1, quality * 1.1);
-      resize();
-    }
+    const now = performance.now();
+    let next = quality;
+    if (cost > 10 && quality > 0.62) next = Math.max(0.6, quality * 0.85);
+    else if (cost < 3.5 && quality < 1 && now - lastAdapt > 6000) next = Math.min(1, quality * 1.1);
+    if (next === quality) return;
+    quality = next;
+    lastAdapt = now;
+    if (resize()) render(current);
   }
 
   function frame(now) {
@@ -1848,7 +1852,10 @@
     updateDom(0);
   }
 
-  new ResizeObserver(() => { resize(); measureJourney(); if (!running) render(current); }).observe(canvas);
+  new ResizeObserver(() => {
+    measureJourney();
+    if (resize() || !running) render(current);
+  }).observe(canvas);
   new IntersectionObserver((entries) => {
     journeyVisible = entries[0].isIntersecting;
     if (!journeyVisible) setInRoom(false);
@@ -1908,6 +1915,7 @@
   }
 
   function go(dir) {
+    if (!introReady) return;
     if (pilot) {
       queued = dir;
       return;
@@ -1989,6 +1997,31 @@
     const i = +b.dataset.beat;
     pilotTo(i, 700 + 450 * Math.abs(i - nearestBeat()));
   }));
+
+  if (loader) {
+    const bar = loader.querySelector('.loader-bar i');
+    const tasks = [document.fonts.ready, ...Object.values(dishes).map((img) => (img.decode ? img.decode() : Promise.resolve()))];
+    let loaded = 0;
+    const tick = () => {
+      loaded++;
+      bar.style.transform = `scaleX(${loaded / tasks.length})`;
+    };
+    tasks.forEach((t) => Promise.resolve(t).then(tick, tick));
+    const minimum = new Promise((r) => setTimeout(r, 900));
+    const timeout = new Promise((r) => setTimeout(r, 5000));
+    Promise.race([Promise.all([Promise.allSettled(tasks), minimum]), timeout]).then(() => {
+      labelWidths.clear();
+      measureJourney();
+      resize();
+      if (frozen === null && !reduceMotion.matches) current = scrollProgress();
+      render(reduceMotion.matches ? 0 : current);
+      introReady = true;
+      for (const c of captions) c.on = null;
+      updateDom(reduceMotion.matches ? 0 : current);
+      loader.classList.add('is-done');
+      setTimeout(() => loader.remove(), 900);
+    });
+  }
 
   window.BocalRoom = { setProgress: (p) => { current = p; render(p); updateDom(p); } };
 })();
