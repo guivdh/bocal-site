@@ -198,12 +198,20 @@ body.in-room .store-link { background: var(--paper); color: var(--ink); border-c
 }
 .skip-intro.is-on { opacity: 1; visibility: visible; transition: opacity .4s, visibility 0s; }
 .skip-intro:hover { border-color: rgba(251, 243, 228, .7); color: var(--paper); }
-.journey-bar {
-  position: absolute; z-index: 3; right: calc(var(--gutter) - 6px); top: 50%; width: 3px; height: 26vh;
-  transform: translateY(-50%); border-radius: 3px; background: rgba(251, 243, 228, .14); overflow: hidden;
-  opacity: clamp(0, calc(min(var(--journey, 0) * 30, (0.86 - var(--journey, 0)) * 20)), 1);
+.beats {
+  position: absolute; z-index: 3; right: calc(var(--gutter) - 4px); top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  opacity: 0; visibility: hidden; transition: opacity .4s, visibility 0s .4s;
 }
-.journey-bar i { position: absolute; inset: 0; background: var(--sticker); transform-origin: top; transform: scaleY(var(--journey, 0)); }
+.beats.is-on { opacity: 1; visibility: visible; transition: opacity .4s, visibility 0s; }
+.beats button {
+  position: relative; width: 12px; height: 12px; padding: 0; border-radius: 999px; cursor: pointer;
+  border: 2px solid rgba(251, 243, 228, .5); background: transparent;
+  transition: height .4s var(--ease-back), background .3s, border-color .3s;
+}
+.beats button::before { content: ""; position: absolute; inset: -9px -14px; }
+.beats button:hover { border-color: var(--paper); }
+.beats button[aria-current="step"] { height: 30px; background: var(--sticker); border-color: var(--sticker); }
 
 @media (max-width: 760px) {
   .cap { bottom: max(84px, calc(env(safe-area-inset-bottom) + 76px)); }
@@ -217,7 +225,9 @@ body.in-room .store-link { background: var(--paper); color: var(--ink); border-c
   .actions .btn { flex: 1 1 auto; }
   .stage::before { background: linear-gradient(0deg, rgba(10, 6, 3, .92) 0%, rgba(10, 6, 3, .7) 40%, rgba(10, 6, 3, 0) 66%); }
   .scroll-hint { display: none; }
-  .journey-bar { display: none; }
+  .beats { right: 10px; gap: 10px; }
+  .beats button { width: 10px; height: 10px; }
+  .beats button[aria-current="step"] { height: 24px; }
   .skip-intro { bottom: max(18px, env(safe-area-inset-bottom) + 8px); }
 }
 
@@ -597,7 +607,7 @@ body.in-room .store-link { background: var(--paper); color: var(--ink); border-c
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .journey { height: 100vh; height: 100svh; }
-  .cap-story, .skip-intro, .scroll-hint, .journey-bar { display: none; }
+  .cap-story, .skip-intro, .scroll-hint, .beats { display: none; }
   .float-card, .float-jar, .float-avatar, .invite-bubble, .invite-members, .dup-card, .dup-toast, .cap-hero .eyebrow .dot { animation: none; }
   .reveal { transform: none; transition: opacity .4s; }
   .reveal mark { background-size: 100% 100%; transition: none; }

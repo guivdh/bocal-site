@@ -1705,6 +1705,19 @@
     const [a, b] = el.dataset.show.split(',').map(Number);
     return { el, a, b, on: null };
   });
+  const BEATS = [0, 0.212, 0.372, 0.492, 0.7];
+  const BEAT_MS = [2600, 2300, 1700, 2500, 2700];
+  const beatButtons = [...document.querySelectorAll('[data-beat]')];
+  let pilot = null, shownBeat = -1;
+
+  function markBeat(p) {
+    let best = 0;
+    for (let i = 1; i < BEATS.length; i++) if (Math.abs(BEATS[i] - p) < Math.abs(BEATS[best] - p)) best = i;
+    if (best === shownBeat) return;
+    shownBeat = best;
+    beatButtons.forEach((b, i) => (i === best ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current')));
+  }
+
   const stageEl = canvas.closest('.stage') || journey;
   let lastVar = -1, inRoom = null;
 
@@ -1724,6 +1737,7 @@
       stageEl.style.setProperty('--journey', p.toFixed(4));
     }
     setInRoom(p < 0.9 && journeyVisible);
+    markBeat(p);
   }
 
   const MAX_PIXELS = 2.3e6;
@@ -1779,7 +1793,7 @@
     pointer.x += (pointer.tx - pointer.x) * (1 - Math.exp(-dt * 3));
     pointer.y += (pointer.ty - pointer.y) * (1 - Math.exp(-dt * 3));
     const goal = frozen ?? scrollProgress();
-    current += (goal - current) * (1 - Math.exp(-dt * 6.5));
+    current += (goal - current) * (1 - Math.exp(-dt * (pilot ? 16 : 6.5)));
     if (Math.abs(goal - current) < 0.00005) current = goal;
     const idle = current === goal && Math.abs(pointer.tx - pointer.x) < 0.002 && Math.abs(pointer.ty - pointer.y) < 0.002;
     skip = idle && !skip;
@@ -1831,6 +1845,125 @@
     still();
     document.fonts.ready.then(still);
   } else start();
+
+  const endY = () => journeyTop + journeyHeight;
+  const beatY = (i) => (i >= BEATS.length ? endY() : journeyTop + BEATS[i] * Math.max(0, journeyHeight - innerHeight));
+  const ease = (u) => u * u * u * (u * (u * 6 - 15) + 10);
+  let queued = 0, lastWheel = 0, touch = null, settleTimer = 0;
+
+  function nearestBeat() {
+    let best = 0, dist = Infinity;
+    for (let i = 0; i <= BEATS.length; i++) {
+      const d = Math.abs(beatY(i) - scrollY);
+      if (d < dist) { dist = d; best = i; }
+    }
+    return best;
+  }
+
+  function pilotFrame(now) {
+    if (!pilot) return;
+    const u = clamp01((now - pilot.t0) / pilot.dur);
+    window.scrollTo(0, pilot.from + (pilot.to - pilot.from) * ease(u));
+    if (u < 1) {
+      requestAnimationFrame(pilotFrame);
+      return;
+    }
+    pilot = null;
+    document.documentElement.style.scrollBehavior = '';
+    if (queued) {
+      const dir = queued;
+      queued = 0;
+      go(dir);
+    }
+  }
+
+  function pilotTo(i, dur) {
+    i = clamp(i, 0, BEATS.length);
+    const from = scrollY, to = beatY(i);
+    if (Math.abs(to - from) < 2) return;
+    const running = pilot !== null;
+    document.documentElement.style.scrollBehavior = 'auto';
+    pilot = { from, to, i, dur, t0: performance.now() };
+    if (!running) requestAnimationFrame(pilotFrame);
+  }
+
+  function go(dir) {
+    if (pilot) {
+      queued = dir;
+      return;
+    }
+    const from = nearestBeat();
+    const to = clamp(from + dir, 0, BEATS.length);
+    if (to === from) return;
+    pilotTo(to, BEAT_MS[Math.min(from, to)] * (dir < 0 ? 0.7 : 1));
+  }
+
+  function handles(dir) {
+    if (frozen !== null || reduceMotion.matches) return false;
+    if (pilot) return true;
+    const end = endY();
+    if (scrollY < end - 4) return true;
+    return dir < 0 && scrollY <= end + 6;
+  }
+
+  addEventListener('wheel', (e) => {
+    if (e.ctrlKey || Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+    const dir = Math.sign(e.deltaY);
+    if (!dir || !handles(dir)) return;
+    e.preventDefault();
+    const now = performance.now(), gap = now - lastWheel;
+    lastWheel = now;
+    if (gap < 200 || Math.abs(e.deltaY) < 2) return;
+    go(dir);
+  }, { passive: false });
+
+  addEventListener('keydown', (e) => {
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+    const t = e.target;
+    if (t && t.closest && t.closest('input, textarea, select, [contenteditable]')) return;
+    if (e.key === ' ' && t && t.closest && t.closest('button, a')) return;
+    const k = e.key;
+    const dir = k === 'ArrowDown' || k === 'PageDown' || (k === ' ' && !e.shiftKey) ? 1
+      : k === 'ArrowUp' || k === 'PageUp' || (k === ' ' && e.shiftKey) ? -1 : 0;
+    if (!dir || !handles(dir)) return;
+    e.preventDefault();
+    if (!e.repeat) go(dir);
+  });
+
+  addEventListener('touchstart', (e) => {
+    touch = e.touches.length === 1 ? { y: e.touches[0].clientY, decided: null, done: false } : null;
+  }, { passive: true });
+  addEventListener('touchmove', (e) => {
+    if (!touch) return;
+    const dy = touch.y - e.touches[0].clientY;
+    if (touch.decided === null) {
+      if (Math.abs(dy) < 2) return;
+      touch.decided = handles(Math.sign(dy));
+    }
+    if (!touch.decided) return;
+    e.preventDefault();
+    if (!touch.done && Math.abs(dy) > 26) {
+      touch.done = true;
+      go(Math.sign(dy));
+    }
+  }, { passive: false });
+  addEventListener('touchend', () => { touch = null; settle(); }, { passive: true });
+
+  function settle() {
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => {
+      if (pilot || touch || frozen !== null || reduceMotion.matches) return;
+      if (scrollY >= endY() - 4) return;
+      const i = nearestBeat();
+      if (Math.abs(beatY(i) - scrollY) > 3) pilotTo(i, 900);
+    }, 180);
+  }
+  addEventListener('scroll', () => { if (!pilot) settle(); }, { passive: true });
+
+  beatButtons.forEach((b) => b.addEventListener('click', () => {
+    const i = +b.dataset.beat;
+    pilotTo(i, 700 + 450 * Math.abs(i - nearestBeat()));
+  }));
 
   window.BocalRoom = { setProgress: (p) => { current = p; render(p); updateDom(p); } };
 })();
