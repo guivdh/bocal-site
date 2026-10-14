@@ -132,21 +132,16 @@ body.in-room .store-link { background: var(--paper); color: var(--ink); border-c
 .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; isolation: isolate; }
 #room { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .grain {
-  position: absolute; inset: -40%; pointer-events: none; z-index: 1; opacity: .09; mix-blend-mode: overlay;
+  position: absolute; inset: 0; pointer-events: none; z-index: 1; opacity: .05;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: grain 1.2s steps(5) infinite;
-}
-@keyframes grain {
-  0% { transform: translate(0, 0); } 20% { transform: translate(-3%, 2%); } 40% { transform: translate(2%, -3%); }
-  60% { transform: translate(-2%, -1%); } 80% { transform: translate(3%, 3%); } 100% { transform: translate(0, 0); }
 }
 .stage::before {
-  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; will-change: opacity;
   background: linear-gradient(90deg, rgba(10, 6, 3, .78) 0%, rgba(10, 6, 3, .5) 32%, rgba(10, 6, 3, 0) 58%);
   opacity: clamp(0, calc(1 - var(--journey, 0) * 15), 1);
 }
 .stage::after {
-  content: ""; position: absolute; inset: auto 0 0; height: 46%; z-index: 1; pointer-events: none;
+  content: ""; position: absolute; inset: auto 0 0; height: 46%; z-index: 1; pointer-events: none; will-change: opacity;
   background: linear-gradient(0deg, rgba(10, 6, 3, .72), rgba(10, 6, 3, 0));
   opacity: clamp(0, calc(min(var(--journey, 0) * 12, (0.78 - var(--journey, 0)) * 14)), 1);
 }
@@ -603,7 +598,7 @@ body.in-room .store-link { background: var(--paper); color: var(--ink); border-c
   html { scroll-behavior: auto; }
   .journey { height: 100vh; height: 100svh; }
   .cap-story, .skip-intro, .scroll-hint, .journey-bar { display: none; }
-  .grain, .float-card, .float-jar, .float-avatar, .invite-bubble, .invite-members, .dup-card, .dup-toast, .cap-hero .eyebrow .dot { animation: none; }
+  .float-card, .float-jar, .float-avatar, .invite-bubble, .invite-members, .dup-card, .dup-toast, .cap-hero .eyebrow .dot { animation: none; }
   .reveal { transform: none; transition: opacity .4s; }
   .reveal mark { background-size: 100% 100%; transition: none; }
   .cta-jars .cj { transform: none; }

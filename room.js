@@ -4,7 +4,7 @@
   const canvas = document.getElementById('room');
   const journey = document.getElementById('journey');
   if (!canvas || !journey) return;
-  const ctx = canvas.getContext('2d');
+  let ctx = canvas.getContext('2d', { alpha: false });
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const query = new URLSearchParams(location.search);
   const frozen = query.has('p') ? parseFloat(query.get('p')) : null;
@@ -371,12 +371,44 @@
   });
   const target = jars.find((j) => j.target);
 
+  const profiles = new Map();
   function jarProfile(w) {
+    if (profiles.has(w)) return profiles.get(w);
     const R = w / 2, gh = 1.32 * w, rb = 0.3 * w, rt = 0.25 * w, out = [];
-    for (let i = 0; i <= 4; i++) { const a = -Math.PI / 2 + (i / 4) * (Math.PI / 2); out.push([R - rb + rb * Math.cos(a), rb + rb * Math.sin(a)]); }
-    for (let i = 0; i <= 4; i++) { const a = (i / 4) * (Math.PI / 2); out.push([R - rt + rt * Math.cos(a), gh - rt + rt * Math.sin(a)]); }
+    for (const i of [0, 2, 4]) { const a = -Math.PI / 2 + (i / 4) * (Math.PI / 2); out.push([R - rb + rb * Math.cos(a), rb + rb * Math.sin(a)]); }
+    for (const i of [0, 2, 3, 4]) { const a = (i / 4) * (Math.PI / 2); out.push([R - rt + rt * Math.cos(a), gh - rt + rt * Math.sin(a)]); }
     out.push([0.26 * w, gh + 0.035 * w]);
+    profiles.set(w, out);
     return out;
+  }
+
+  const segsFor = (px) => Math.max(14, Math.min(40, Math.round((px * dpr) / 9)));
+
+  const SPRITE = 128;
+  const tokenCache = {};
+  function tokenSprite(kind) {
+    if (tokenCache[kind]) return tokenCache[kind];
+    if (dishes[kind] && !ready(dishes[kind])) return null;
+    const c = document.createElement('canvas');
+    c.width = c.height = SPRITE + 12;
+    const prev = ctx;
+    ctx = c.getContext('2d');
+    drawToken(kind, c.width / 2, c.height / 2, SPRITE, 0, SPRITE * 0.0723);
+    ctx = prev;
+    tokenCache[kind] = c;
+    return c;
+  }
+
+  function drawTokenFast(kind, x, y, size, rot) {
+    const spr = size * dpr < 150 ? tokenSprite(kind) : null;
+    if (!spr) {
+      drawToken(kind, x, y, size, rot, Math.max(0.5, size * 0.0723));
+      return;
+    }
+    const k = size / SPRITE, c = Math.cos(rot) * k, sn = Math.sin(rot) * k;
+    ctx.setTransform(dpr * c, dpr * sn, -dpr * sn, dpr * c, dpr * x, dpr * y);
+    ctx.drawImage(spr, -spr.width / 2, -spr.height / 2);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
   function drawToken(kind, x, y, size, rot, lineW) {
@@ -426,19 +458,21 @@
   function drawJar(j) {
     const w = j.w, R = w / 2, gh = 1.32 * w;
     const { base, xf } = jarXf(j);
-    const h = latheHull(xf, jarProfile(w), 30);
-    if (!h) return;
     const center = add(base, [0, gh * 0.55, 0]);
     const s = cam.scale(center);
+    if (!s) return;
+    const h = latheHull(xf, jarProfile(w), segsFor(w * s));
+    if (!h) return;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const q of h) {
+      if (q[0] < minX) minX = q[0];
+      if (q[0] > maxX) maxX = q[0];
+      if (q[1] < minY) minY = q[1];
+      if (q[1] > maxY) maxY = q[1];
+    }
+    if (maxX < -60 || minX > W + 60 || maxY < -60 || minY > H + 60) return;
     const dark = Math.max(darkness(center), j.dim || 0);
 
-    trace(h);
-    ctx.fillStyle = 'rgba(214,232,228,0.10)';
-    ctx.fill();
-
-    ctx.save();
-    trace(h);
-    ctx.clip();
     const toks = [];
     j.tokens.forEach((kind, i) => {
       const sl = j.slots[i];
@@ -452,20 +486,24 @@
     for (const t of toks) {
       const q = cam.P(t.p);
       if (!q) continue;
-      drawToken(t.kind, q[0], q[1], 0.235 * w * q[2], t.rot, Math.max(0.5, 0.017 * w * q[2]));
+      drawTokenFast(t.kind, q[0], q[1], 0.235 * w * q[2], t.rot);
     }
-    trace(h);
-    ctx.fillStyle = `rgba(16,10,6,${dark})`;
-    ctx.fill();
+    if (dark > 0.01) {
+      trace(h);
+      ctx.fillStyle = `rgba(16,10,6,${dark})`;
+      ctx.fill();
+    }
     if (j.glow > 0) {
       const g0 = cam.P(add(base, [0, gh * 0.6, 0]));
       if (g0) {
+        ctx.save();
+        trace(h);
+        ctx.clip();
         ctx.globalCompositeOperation = 'lighter';
         glow(g0[0], g0[1], w * s * (0.8 + j.glow * 0.5), 'jarglow', [255, 205, 120], j.glow * 0.95, 0.6);
-        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
       }
     }
-    ctx.restore();
 
     trace(h);
     ctx.fillStyle = hullGradient(h, ['rgba(255,255,255,0.16)', 'rgba(255,255,255,0.03)', 'rgba(255,255,255,0.02)', 'rgba(255,255,255,0.13)']);
@@ -530,11 +568,12 @@
     drawLabel(j, base, xf, s, dark);
     if (j.extra && !j.extra.inside) {
       const q = cam.P(j.extra.p);
-      if (q) drawToken(j.extra.kind, q[0], q[1], 0.235 * w * q[2], j.extra.rot, Math.max(0.5, 0.017 * w * q[2]));
+      if (q) drawTokenFast(j.extra.kind, q[0], q[1], 0.235 * w * q[2], j.extra.rot);
     }
     if (!j.lidS.gone) drawLid(j, base, dark);
   }
 
+  const labelWidths = new Map();
   function drawLabel(j, base, xf, s, dark) {
     const w = j.w, R = w / 2, gh = 1.32 * w;
     const n = rotY([0, 0, 1], j.spin);
@@ -553,7 +592,8 @@
     ctx.globalAlpha = clamp01((vis - 0.08) * 4);
     const label = `${j.name} ${j.emoji}`;
     ctx.font = '800 13.5px "DM Sans", sans-serif';
-    const tw = Math.min(104, ctx.measureText(label).width);
+    if (!labelWidths.has(label)) labelWidths.set(label, ctx.measureText(label).width);
+    const tw = Math.min(104, labelWidths.get(label));
     const bw = tw + 13, bh = 19;
     roundRect(-bw / 2, -bh / 2, bw, bh, 6);
     ctx.fillStyle = '#fff';
@@ -579,7 +619,7 @@
     const xf = (q) => add(pivot, rotZ(rotX(rotY([q[0] * (1 + sq * 0.1), q[1] * (1 - sq * 0.15), q[2] * (1 + sq * 0.1)], L.twist), L.tiltX), L.tiltZ));
     const dirOnly = (q) => rotZ(rotX(rotY(q, L.twist), L.tiltX), L.tiltZ);
     const prof = [[lr - b, 0], [lr, b], [lr, lh - b], [lr - b, lh]];
-    const h = latheHull(xf, prof, 32);
+    const h = latheHull(xf, prof, segsFor(w * cam.scale(pivot)));
     if (!h) return;
     const c = xf([0, lh / 2, 0]);
     const s = cam.scale(c);
@@ -782,9 +822,9 @@
     return true;
   }
 
+  const posterFrame = makeBox([-108, 181, 1.4], [46, 62, 2.8], hex('#1E1510'), { key: 0.9, stroke: 0.3 });
   function drawPoster() {
-    const frame = makeBox([-108, 181, 1.4], [46, 62, 2.8], hex('#1E1510'), { key: 0.9, stroke: 0.3 });
-    drawBox(frame);
+    drawBox(posterFrame);
     const x0 = -127, x1 = -89, y0 = 154, y1 = 208, z = 2.85;
     const poly = screenPoly([[x0, y0, z], [x1, y0, z], [x1, y1, z], [x0, y1, z]]);
     if (!poly) return;
@@ -826,7 +866,7 @@
   const buildings = [];
   {
     seed = 99;
-    for (let i = 0; i < 60; i++) stars.push([rr(-3600, -800), rr(500, 2200), -4200, rr(0.4, 1.2), rr(0, TAU)]);
+    for (let i = 0; i < 34; i++) stars.push([rr(-3600, -800), rr(500, 2200), -4200, rr(0.4, 1.2), rr(0, TAU)]);
     let x = -1900;
     while (x < -300) {
       const w = rr(90, 210), h = rr(70, 280);
@@ -836,6 +876,34 @@
       x += w + rr(-20, 30);
     }
   }
+
+  const CITY = { x0: -2000, y1: 320, z: -950, unit: 2 };
+  let cityCanvas = null;
+  function city() {
+    if (cityCanvas) return cityCanvas;
+    const c = document.createElement('canvas');
+    c.width = 900;
+    c.height = 360;
+    const g = c.getContext('2d');
+    for (const b of buildings) {
+      const x = (b.x - CITY.x0) / CITY.unit, top = (CITY.y1 - b.h) / CITY.unit;
+      g.fillStyle = '#0A0E1C';
+      g.fillRect(x, top, b.w / CITY.unit, c.height - top);
+      for (const [xx, yy, ph] of b.lit) {
+        g.fillStyle = ph > 0.7 ? 'rgba(160,200,255,0.55)' : 'rgba(242,193,78,0.75)';
+        g.fillRect(x + (xx - 4.5) / CITY.unit, top + (yy - 5.4) / CITY.unit, 9 / CITY.unit, 10.8 / CITY.unit);
+      }
+    }
+    cityCanvas = c;
+    return c;
+  }
+
+  const cream = hex('#CDBFA6');
+  const windowFrame = [
+    makeBox([-200, 231, 3], [92, 6, 6], cream), makeBox([-200, 97.5, 5], [98, 5, 10], cream, { top: hex('#DCCFB8') }),
+    makeBox([-242, 164, 3], [6, 136, 6], cream), makeBox([-158, 164, 3], [6, 136, 6], cream),
+    makeBox([-200, 164, 3], [3.5, 128, 4], cream), makeBox([-200, 170, 3], [80, 3.5, 4], cream),
+  ];
 
   function drawWindow() {
     const { x0, x1, y0, y1 } = WIN;
@@ -872,31 +940,11 @@
         ctx.beginPath(); ctx.arc(moon[0] - r * 0.3, moon[1] - r * 0.15, r * 0.22, 0, TAU); ctx.fill();
         ctx.beginPath(); ctx.arc(moon[0] + r * 0.25, moon[1] + r * 0.3, r * 0.14, 0, TAU); ctx.fill();
       }
-      for (const b of buildings) {
-        const poly = screenPoly([[b.x, -400, b.d], [b.x + b.w, -400, b.d], [b.x + b.w, b.h, b.d], [b.x, b.h, b.d]]);
-        if (!poly) continue;
-        trace(poly);
-        ctx.fillStyle = '#0A0E1C';
-        ctx.fill();
-        for (const [xx, yy, ph] of b.lit) {
-          const on = Math.sin(S.t * 0.2 + ph * 40) > -0.85;
-          if (!on) continue;
-          const q = cam.P([b.x + xx, b.h - yy, b.d]);
-          if (!q) continue;
-          const sz = 9 * q[2];
-          ctx.fillStyle = ph > 0.7 ? 'rgba(160,200,255,0.55)' : 'rgba(242,193,78,0.75)';
-          ctx.fillRect(q[0] - sz / 2, q[1] - sz * 0.6, sz, sz * 1.2);
-        }
-      }
+      if (planeAffine([CITY.x0, CITY.y1, CITY.z], [1, 0, 0], [0, -1, 0], CITY.unit)) ctx.drawImage(city(), 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.restore();
     }
-    const cream = hex('#CDBFA6');
-    const parts = [
-      makeBox([-200, 231, 3], [92, 6, 6], cream), makeBox([-200, 97.5, 5], [98, 5, 10], cream, { top: hex('#DCCFB8') }),
-      makeBox([-242, 164, 3], [6, 136, 6], cream), makeBox([-158, 164, 3], [6, 136, 6], cream),
-      makeBox([-200, 164, 3], [3.5, 128, 4], cream), makeBox([-200, 170, 3], [80, 3.5, 4], cream),
-    ];
-    for (const p of parts) drawBox(p);
+    for (const part of windowFrame) drawBox(part);
   }
 
   function drawCurtain() {
@@ -1104,7 +1152,7 @@
   const dust = [];
   {
     seed = 3;
-    for (let i = 0; i < 110; i++) dust.push([rr(-160, 200), rr(20, 250), rr(20, 240), rr(0, TAU), rr(0.15, 0.5)]);
+    for (let i = 0; i < 80; i++) dust.push([rr(-160, 200), rr(20, 250), rr(20, 240), rr(0, TAU), rr(0.15, 0.5)]);
   }
   function drawDust() {
     for (const d of dust) {
@@ -1657,51 +1705,94 @@
     const [a, b] = el.dataset.show.split(',').map(Number);
     return { el, a, b, on: null };
   });
-  const root = document.documentElement;
+  const stageEl = canvas.closest('.stage') || journey;
+  let lastVar = -1, inRoom = null;
+
+  function setInRoom(value) {
+    if (value === inRoom) return;
+    inRoom = value;
+    document.body.classList.toggle('in-room', value);
+  }
 
   function updateDom(p) {
     for (const c of captions) {
       const on = p >= c.a && p <= c.b;
       if (on !== c.on) { c.on = on; c.el.classList.toggle('is-on', on); }
     }
-    root.style.setProperty('--journey', p.toFixed(4));
-    document.body.classList.toggle('in-room', p < 0.9 && journeyVisible);
+    if (Math.abs(p - lastVar) > 0.0002) {
+      lastVar = p;
+      stageEl.style.setProperty('--journey', p.toFixed(4));
+    }
+    setInRoom(p < 0.9 && journeyVisible);
   }
+
+  const MAX_PIXELS = 2.3e6;
+  let quality = 1;
 
   function resize() {
     const rect = canvas.getBoundingClientRect();
-    dpr = Math.min(window.devicePixelRatio || 1, rect.width < 700 ? 1.6 : 1.75);
     W = rect.width;
     H = rect.height;
-    canvas.width = Math.round(W * dpr);
-    canvas.height = Math.round(H * dpr);
+    const want = Math.min(window.devicePixelRatio || 1, W < 700 ? 1.6 : 1.5);
+    const cap = Math.sqrt(MAX_PIXELS / Math.max(1, W * H));
+    dpr = Math.max(0.6, Math.min(want, cap) * quality);
+    const cw = Math.round(W * dpr), ch = Math.round(H * dpr);
+    if (canvas.width !== cw || canvas.height !== ch) {
+      canvas.width = cw;
+      canvas.height = ch;
+    }
+  }
+
+  let journeyTop = 0, journeyHeight = 1;
+  function measureJourney() {
+    const r = journey.getBoundingClientRect();
+    journeyTop = r.top + scrollY;
+    journeyHeight = r.height;
   }
 
   function scrollProgress() {
-    const r = journey.getBoundingClientRect();
-    const total = r.height - innerHeight;
-    return total > 0 ? clamp01(-r.top / total) : 0;
+    const total = journeyHeight - innerHeight;
+    return total > 0 ? clamp01((scrollY - journeyTop) / total) : 0;
   }
 
   let journeyVisible = true;
+  measureJourney();
   let current = frozen ?? scrollProgress();
   let lastTime = performance.now();
   let running = false;
+  let cost = 6, drawn = 0, skip = false;
+
+  function adapt() {
+    if (cost > 9 && quality > 0.62) {
+      quality = Math.max(0.6, quality * 0.85);
+      resize();
+    } else if (cost < 4 && quality < 1) {
+      quality = Math.min(1, quality * 1.1);
+      resize();
+    }
+  }
 
   function frame(now) {
-    const dt = Math.min(0.05, (now - lastTime) / 1000);
+    const dt = Math.max(0, Math.min(0.05, (now - lastTime) / 1000));
     lastTime = now;
     S.t += dt;
     pointer.x += (pointer.tx - pointer.x) * (1 - Math.exp(-dt * 3));
     pointer.y += (pointer.ty - pointer.y) * (1 - Math.exp(-dt * 3));
     const goal = frozen ?? scrollProgress();
-    current += (goal - current) * (1 - Math.exp(-dt * 7));
+    current += (goal - current) * (1 - Math.exp(-dt * 6.5));
     if (Math.abs(goal - current) < 0.00005) current = goal;
-    try {
-      render(current);
-    } catch (e) {
-      if (!frame.failed) console.error(e);
-      frame.failed = true;
+    const idle = current === goal && Math.abs(pointer.tx - pointer.x) < 0.002 && Math.abs(pointer.ty - pointer.y) < 0.002;
+    skip = idle && !skip;
+    if (!skip) {
+      const t0 = performance.now();
+      try {
+        render(current);
+      } catch (e) {
+        if (!frame.failed) console.error(e);
+        frame.failed = true;
+      }
+      cost += (performance.now() - t0 - cost) * 0.1;
+      if (++drawn % 45 === 0) adapt();
     }
     updateDom(current);
     sounds(current);
@@ -1723,15 +1814,16 @@
     updateDom(0);
   }
 
-  new ResizeObserver(() => { resize(); if (!running) render(current); }).observe(canvas);
+  new ResizeObserver(() => { resize(); measureJourney(); if (!running) render(current); }).observe(canvas);
   new IntersectionObserver((entries) => {
     journeyVisible = entries[0].isIntersecting;
-    if (!journeyVisible) document.body.classList.remove('in-room');
+    if (!journeyVisible) setInRoom(false);
     if (journeyVisible && !reduceMotion.matches) start();
   }).observe(journey);
 
   resize();
-  document.fonts.ready.then(() => { if (!running) render(current); });
+  document.fonts.ready.then(() => { labelWidths.clear(); measureJourney(); if (!running) render(current); });
+  addEventListener('load', measureJourney);
   for (const img of Object.values(dishes)) img.addEventListener('load', () => { if (!running) render(current); });
 
   if (reduceMotion.matches) {
