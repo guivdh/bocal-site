@@ -189,16 +189,33 @@
     lampBase: [112, 0, 70],
   };
 
+  const TEAL_LAMP = [-57, 170, 12];
+  const LAVA = [57, 120, 12];
+  const NEON = { x0: 101, x1: 123, y0: 188, y1: 211, z: 1.8 };
+  const CANDLE = [50, 57.5, 110];
+  const flick = {
+    neon() {
+      const c = S.t % 7.3;
+      return c > 6.85 && c < 7.15 ? (Math.sin(c * 90) > 0 ? 0.2 : 1) : 1;
+    },
+    candle: () => 0.8 + 0.12 * Math.sin(S.t * 9.1) + 0.07 * Math.sin(S.t * 23.7 + 1.3),
+    lava: () => 0.88 + 0.12 * Math.sin(S.t * 0.7),
+  };
+
   function lights() {
     return [
-      { p: S.lamp, c: [1.0, 0.68, 0.4], i: 2.1, r: 120 },
-      { p: [0, 192, 14], c: [1.0, 0.72, 0.45], i: 0.55, r: 85 },
+      { p: S.lamp, c: [1.0, 0.66, 0.38], i: 1.8, r: 115 },
+      { p: [0, 192, 14], c: [1.0, 0.74, 0.55], i: 0.42, r: 80 },
+      { p: add(TEAL_LAMP, [0, 2, 3]), c: [0.28, 0.95, 0.88], i: 0.9, r: 55 },
+      { p: add(LAVA, [0, 15, 3]), c: [0.95, 0.32, 0.85], i: 0.8 * flick.lava(), r: 42 },
+      { p: [112, 200, 8], c: [1.0, 0.32, 0.62], i: 0.85 * flick.neon(), r: 55 },
+      { p: add(CANDLE, [0, 8, 0]), c: [1.0, 0.6, 0.28], i: 0.55 * flick.candle(), r: 30 },
       { p: S.mouth || [0, 186, 38], c: [1.0, 0.86, 0.6], i: S.glow * 2.6, r: 70 },
       { p: [64, 64, 97], c: [0.7, 0.8, 1.0], i: S.phone * 0.5, r: 30 },
     ];
   }
   let LIGHTS = lights();
-  const AMB = [0.24, 0.19, 0.17];
+  const AMB = [0.18, 0.145, 0.14];
   const MOON_DIR = norm([0.55, 0.25, -0.8]);
 
   function lightRGB(p, n) {
@@ -732,6 +749,331 @@
   }
 
   addStatic();
+  addDecor();
+
+  function addDecor() {
+    objects.push(makeCyl([-57, 160, 12], 3.4, 1.3, COL.brass, { key: 12.45, stroke: 0.3 }));
+    objects.push(makeCyl([-57, 161.3, 12], 1.1, 8.8, hex('#E8DCC8'), { key: 12.46, stroke: 0.25, noTop: true }));
+    objects.push({ kind: 'custom', key: 12.47, anchor: TEAL_LAMP, draw: drawMushroom });
+    objects.push({ kind: 'custom', key: 12.47, anchor: add(LAVA, [0, 14, 0]), draw: drawLava });
+    objects.push({ kind: 'custom', key: 0.97, anchor: [112, 200, 2], draw: drawNeon });
+    objects.push({ kind: 'custom', key: 0.91, anchor: [-40, 221, 1], draw: () => drawFramed(sunsetFrame, SUNSET, 'sunset', paintSunset) });
+    objects.push({ kind: 'custom', key: 0.91, anchor: [16, 223, 1], draw: () => drawFramed(jazzFrame, JAZZ, 'jazz', paintJazz) });
+    objects.push({ kind: 'custom', key: 0.92, anchor: [-108, 231, 1], draw: drawClock });
+    objects.push(makeCyl(CANDLE, 2.3, 6.5, hex('#F6EBD9'), { key: 101.2, top: hex('#FFF6E6'), stroke: 0.25 }));
+    objects.push({ kind: 'custom', key: 101.3, anchor: add(CANDLE, [0, 7, 0]), draw: drawCandle });
+  }
+
+  const SUNSET = { x0: -64, x1: -16, y0: 205, y1: 239.6, z: 2.65 };
+  const JAZZ = { x0: 0, x1: 32, y0: 202, y1: 245.6, z: 2.65 };
+  const sunsetFrame = makeBox([-40, 222.3, 1.3], [53, 39.6, 2.6], hex('#1E1510'), { stroke: 0.3 });
+  const jazzFrame = makeBox([16, 223.8, 1.3], [37, 48.6, 2.6], hex('#B88452'), { stroke: 0.3, top: hex('#C9925B') });
+  const artCache = {};
+
+  function art(name, paint, w, h) {
+    if (artCache[name]) return artCache[name];
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    paint(c.getContext('2d'), w, h);
+    if (document.fonts.check('800 20px "DM Sans"')) artCache[name] = c;
+    return c;
+  }
+
+  function polyFill(g, pts, color) {
+    g.beginPath();
+    pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y)));
+    g.closePath();
+    g.fillStyle = color;
+    g.fill();
+  }
+
+  function paintSunset(g, w, h) {
+    g.fillStyle = '#F0DDB8';
+    g.fillRect(0, 0, w, h);
+    const cx = w / 2, cy = h * 0.68, r = w * 0.3;
+    g.save();
+    g.beginPath();
+    g.rect(0, 0, w, cy);
+    g.clip();
+    g.beginPath();
+    g.arc(cx, cy, r, 0, TAU);
+    g.clip();
+    ['#E0533D', '#EE8A3C', '#F2C14E'].forEach((c, i) => {
+      g.fillStyle = c;
+      g.fillRect(cx - r, cy - r + (i * r) / 3, 2 * r, r / 3 + 1);
+    });
+    g.fillStyle = '#F0DDB8';
+    for (let i = 1; i <= 4; i++) g.fillRect(cx - r, cy - r * 0.13 * i * 1.15, 2 * r, 2 + i * 2.2);
+    g.restore();
+    polyFill(g, [[0, h], [0, h * 0.72], [w * 0.2, h * 0.52], [w * 0.4, h * 0.74], [w * 0.62, h * 0.47], [w * 0.83, h * 0.67], [w, h * 0.56], [w, h]], '#2F5D62');
+    polyFill(g, [[0, h], [0, h * 0.86], [w * 0.28, h * 0.75], [w * 0.55, h * 0.89], [w * 0.8, h * 0.77], [w, h * 0.85], [w, h]], '#6FA36B');
+    g.strokeStyle = '#F0DDB8';
+    g.lineWidth = 22;
+    g.strokeRect(11, 11, w - 22, h - 22);
+    g.fillStyle = '#2B1D12';
+    g.font = '800 30px "DM Sans", sans-serif';
+    g.fillText('ÉTÉ', 38, 64);
+  }
+
+  function paintJazz(g, w, h) {
+    g.fillStyle = '#1D3A4A';
+    g.fillRect(0, 0, w, h);
+    const cx = w * 0.5, cy = h * 0.8, r = w * 0.58;
+    g.fillStyle = '#111';
+    g.beginPath();
+    g.arc(cx, cy, r, 0, TAU);
+    g.fill();
+    g.strokeStyle = 'rgba(255,255,255,0.08)';
+    g.lineWidth = 1.6;
+    for (let rr = r * 0.4; rr < r - 4; rr += 7) {
+      g.beginPath();
+      g.arc(cx, cy, rr, 0, TAU);
+      g.stroke();
+    }
+    g.strokeStyle = 'rgba(255,255,255,0.16)';
+    g.lineWidth = 7;
+    g.beginPath();
+    g.arc(cx, cy, r * 0.75, -2.6, -1.9);
+    g.stroke();
+    g.fillStyle = '#E0533D';
+    g.beginPath();
+    g.arc(cx, cy, r * 0.3, 0, TAU);
+    g.fill();
+    g.fillStyle = '#1D3A4A';
+    g.beginPath();
+    g.arc(cx, cy, 6, 0, TAU);
+    g.fill();
+    g.textAlign = 'center';
+    g.fillStyle = '#F2C14E';
+    g.font = '800 104px "DM Sans", sans-serif';
+    g.fillText('JAZZ', w / 2, 118);
+    g.fillStyle = 'rgba(251,243,228,0.85)';
+    g.font = '700 25px "DM Sans", sans-serif';
+    g.fillText('SAMEDI · 21 H', w / 2, 158);
+  }
+
+  function drawFramed(frame, R, name, paint) {
+    drawBox(frame);
+    const poly = screenPoly([[R.x0, R.y0, R.z], [R.x1, R.y0, R.z], [R.x1, R.y1, R.z], [R.x0, R.y1, R.z]]);
+    if (!poly) return;
+    const pw = Math.round((R.x1 - R.x0) * 10), ph = Math.round((R.y1 - R.y0) * 10);
+    const img = art(name, paint, pw, ph);
+    ctx.save();
+    trace(poly);
+    ctx.clip();
+    if (planeAffine([R.x0, R.y1, R.z], [1, 0, 0], [0, -1, 0], 0.1)) ctx.drawImage(img, 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const l = lightRGB([(R.x0 + R.x1) / 2, (R.y0 + R.y1) / 2, R.z], [0, 0, 1]);
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = rgba([Math.min(255, l[0] * 230), Math.min(255, l[1] * 230), Math.min(255, l[2] * 230)]);
+    trace(poly);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawClock() {
+    const c = [-108, 231, 1.2];
+    const s = cam.scale(c);
+    if (!s) return;
+    const rays = [];
+    for (let k = 0; k < 24; k++) {
+      const a = (k / 24) * TAU, len = k % 2 ? 15.5 : 19.5, wd = 0.07;
+      rays.push([[c[0] + Math.cos(a - wd) * 8, c[1] + Math.sin(a - wd) * 8, c[2]], [c[0] + Math.cos(a) * len, c[1] + Math.sin(a) * len, c[2]], [c[0] + Math.cos(a + wd) * 8, c[1] + Math.sin(a + wd) * 8, c[2]]]);
+    }
+    ctx.beginPath();
+    for (const r of rays) {
+      const pts = screenPoly(r);
+      if (!pts) continue;
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      ctx.lineTo(pts[1][0], pts[1][1]);
+      ctx.lineTo(pts[2][0], pts[2][1]);
+      ctx.closePath();
+    }
+    ctx.fillStyle = rgba(shade(hex('#C9A04A'), c, [0, 0, 1]));
+    ctx.fill();
+    ctx.lineWidth = lw(c, 0.18);
+    ctx.strokeStyle = strokeCol;
+    ctx.stroke();
+    const disc = [];
+    for (let k = 0; k < 28; k++) disc.push([c[0] + Math.cos((k / 28) * TAU) * 8.5, c[1] + Math.sin((k / 28) * TAU) * 8.5, c[2] + 0.4]);
+    const dp = screenPoly(disc);
+    if (!dp) return;
+    trace(dp);
+    ctx.fillStyle = rgba(shade(hex('#F3E7D0'), c, [0, 0, 1]));
+    ctx.fill();
+    ctx.lineWidth = lw(c, 0.45);
+    ctx.stroke();
+    const now = new Date();
+    const hands = [[((now.getHours() % 12) + now.getMinutes() / 60) / 12, 4.6, 0.55], [now.getMinutes() / 60, 6.6, 0.4]];
+    ctx.lineCap = 'round';
+    for (const [f, len, width] of hands) {
+      const a = Math.PI / 2 - f * TAU;
+      const sg = screenSeg([c[0], c[1], c[2] + 0.6], [c[0] + Math.cos(a) * len, c[1] + Math.sin(a) * len, c[2] + 0.6]);
+      if (!sg) continue;
+      ctx.beginPath();
+      ctx.moveTo(sg[0][0], sg[0][1]);
+      ctx.lineTo(sg[1][0], sg[1][1]);
+      ctx.lineWidth = lw(c, width);
+      ctx.strokeStyle = rgba(shade(COL.ink, c, [0, 0, 1]));
+      ctx.stroke();
+    }
+  }
+
+  function drawMushroom() {
+    const s = cam.scale(TEAL_LAMP);
+    if (!s) return;
+    const h = latheHull((q) => add(TEAL_LAMP, q), [[9.5, 0], [9, 2.6], [7.3, 5.6], [4.4, 7.8], [0.5, 8.8]], segsFor(19 * s));
+    if (!h) return;
+    const c = cam.P(add(TEAL_LAMP, [0, 3, 0]));
+    trace(h);
+    const g = ctx.createRadialGradient(c[0], c[1] + 2 * s, 0, c[0], c[1], 11 * s);
+    g.addColorStop(0, '#EFFFFB');
+    g.addColorStop(0.45, '#8BE8DD');
+    g.addColorStop(1, '#2A968D');
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.lineWidth = lw(TEAL_LAMP, 0.4);
+    ctx.strokeStyle = strokeCol;
+    ctx.stroke();
+  }
+
+  const BLOBS = [[-0.9, 1.5, 1, 0], [1.1, 1.1, 1.35, 2], [0.2, 1.9, 0.8, 4], [-0.3, 0.95, 1.6, 1]];
+  function drawLava() {
+    const xf = (q) => add(LAVA, q);
+    const mid = add(LAVA, [0, 14, 0]);
+    const s = cam.scale(mid);
+    if (!s) return;
+    const segs = segsFor(10 * s);
+    const base = latheHull(xf, [[5.4, 0], [5.2, 1.2], [3.5, 7]], segs);
+    const glass = latheHull(xf, [[3.5, 7], [4.7, 13], [5, 17], [3.7, 23], [2.8, 26]], segs);
+    const cap = latheHull(xf, [[2.8, 26], [2.4, 29.5], [1.6, 30.2]], segs);
+    if (!base || !glass || !cap) return;
+    const metal = rgba(shade(hex('#B8B2A6'), mid, norm(sub(cam.eye, mid))));
+    trace(base);
+    ctx.fillStyle = metal;
+    ctx.fill();
+    ctx.lineWidth = lw(mid, 0.3);
+    ctx.strokeStyle = strokeCol;
+    ctx.stroke();
+    const top = cam.P(add(LAVA, [0, 26, 0])), bottom = cam.P(add(LAVA, [0, 7, 0]));
+    const f = flick.lava();
+    trace(glass);
+    const g = ctx.createLinearGradient(0, top[1], 0, bottom[1]);
+    g.addColorStop(0, '#5B2A86');
+    g.addColorStop(0.6, '#B63FA0');
+    g.addColorStop(1, `rgb(255,${110 + 40 * f},140)`);
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.save();
+    trace(glass);
+    ctx.clip();
+    ctx.fillStyle = '#FFB27A';
+    for (const [x, r, sp, ph] of BLOBS) {
+      const y = 9 + (Math.sin(S.t * 0.32 * sp + ph) * 0.5 + 0.5) * 14.5;
+      const q = cam.P(add(LAVA, [x + Math.sin(S.t * 0.5 + ph) * 0.5, y, 0.6]));
+      if (!q) continue;
+      const rad = r * (1 + 0.15 * Math.sin(S.t * 0.9 + ph)) * q[2];
+      ctx.beginPath();
+      ctx.ellipse(q[0], q[1], rad, rad * 1.25, 0, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+    trace(glass);
+    ctx.lineWidth = lw(mid, 0.3);
+    ctx.stroke();
+    trace(cap);
+    ctx.fillStyle = metal;
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  function roundedRect3(x0, y0, x1, y1, r, z) {
+    const pts = [];
+    const corner = (cx, cy, a0) => {
+      for (let k = 0; k <= 5; k++) {
+        const a = a0 + (k / 5) * (Math.PI / 2);
+        pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r, z]);
+      }
+    };
+    corner(x1 - r, y1 - r, 0);
+    corner(x0 + r, y1 - r, Math.PI / 2);
+    corner(x0 + r, y0 + r, Math.PI);
+    corner(x1 - r, y0 + r, Math.PI * 1.5);
+    pts.push(pts[0]);
+    return pts;
+  }
+
+  const neonTubes = (() => {
+    const { x0, x1, y0, y1, z } = NEON;
+    const heart = [];
+    for (let k = 0; k <= 40; k++) {
+      const t = (k / 40) * TAU;
+      heart.push([(x0 + x1) / 2 + 0.36 * 16 * Math.pow(Math.sin(t), 3), y0 + 11 + 0.36 * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)), z]);
+    }
+    return [
+      { pts: roundedRect3(x0, y0, x1, y1, 6, z), color: [255, 92, 170] },
+      { pts: roundedRect3(x0 + 3, y1 + 1.8, x1 - 3, y1 + 6, 1.6, z), color: [255, 92, 170] },
+      { pts: heart, color: [255, 200, 90] },
+    ];
+  })();
+
+  function drawNeon() {
+    const f = flick.neon();
+    const c = [112, 200, NEON.z];
+    const unit = cam.scale(c);
+    if (!unit) return;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (const tube of neonTubes) {
+      const pts = tube.pts.map((q) => cam.P(q));
+      if (pts.some((q) => !q)) continue;
+      ctx.beginPath();
+      pts.forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])));
+      ctx.lineWidth = Math.max(1, 0.9 * unit);
+      ctx.strokeStyle = 'rgba(70,30,45,0.9)';
+      ctx.stroke();
+      if (f < 0.5) continue;
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.lineWidth = Math.max(3, 4.2 * unit);
+      ctx.strokeStyle = rgba(tube.color, 0.16 * f);
+      ctx.stroke();
+      ctx.lineWidth = Math.max(1.6, 1.6 * unit);
+      ctx.strokeStyle = rgba(tube.color, 0.55 * f);
+      ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.lineWidth = Math.max(0.8, 0.5 * unit);
+      ctx.strokeStyle = `rgba(255,236,246,${0.95 * f})`;
+      ctx.stroke();
+    }
+  }
+
+  function drawCandle() {
+    const tip = add(CANDLE, [0, 6.5, 0]);
+    const q = cam.P(tip);
+    if (!q) return;
+    const f = flick.candle();
+    const s = q[2];
+    ctx.strokeStyle = 'rgba(30,20,12,0.9)';
+    ctx.lineWidth = Math.max(0.6, 0.18 * s);
+    ctx.beginPath();
+    ctx.moveTo(q[0], q[1]);
+    ctx.lineTo(q[0], q[1] - 0.7 * s);
+    ctx.stroke();
+    const h = (2.4 + 0.5 * f) * s, w = 0.75 * s;
+    const sway = Math.sin(S.t * 3.1) * 0.25 * s;
+    const fy = q[1] - 0.5 * s;
+    ctx.beginPath();
+    ctx.moveTo(q[0], fy);
+    ctx.bezierCurveTo(q[0] - w, fy - h * 0.25, q[0] - w * 0.6 + sway, fy - h * 0.75, q[0] + sway, fy - h);
+    ctx.bezierCurveTo(q[0] + w * 0.6 + sway, fy - h * 0.75, q[0] + w, fy - h * 0.25, q[0], fy);
+    const g = ctx.createRadialGradient(q[0], fy - h * 0.3, 0, q[0], fy - h * 0.45, h * 0.7);
+    g.addColorStop(0, '#FFFBEA');
+    g.addColorStop(0.45, '#FFD36B');
+    g.addColorStop(1, 'rgba(240,120,40,0.85)');
+    ctx.fillStyle = g;
+    ctx.fill();
+  }
 
   const plantLeaves = [];
   {
@@ -970,6 +1312,8 @@
   const FAIRY = { x0: -86, x1: 86, y: 198, sag: 15, n: 15 };
   function fairyPoint(t) { return [lerp(FAIRY.x0, FAIRY.x1, t), FAIRY.y - FAIRY.sag * 4 * t * (1 - t), 5]; }
 
+  const BULBS = [[255, 190, 110], [255, 140, 175], [255, 205, 125], [110, 225, 215], [255, 185, 105], [190, 150, 255], [255, 210, 135], [150, 230, 170]];
+
   function drawFairy() {
     ctx.beginPath();
     let first = true;
@@ -987,7 +1331,7 @@
       const q = cam.P(p);
       if (!q) continue;
       const tw = 0.75 + 0.25 * Math.sin(S.t * (1.4 + (i % 4) * 0.3) + i * 2.1);
-      ctx.fillStyle = `rgba(255,${200 + 30 * tw},${140 + 40 * tw},1)`;
+      ctx.fillStyle = rgba(cmix(BULBS[i % BULBS.length], [255, 250, 235], 0.45 + 0.2 * tw));
       ctx.beginPath();
       ctx.ellipse(q[0], q[1], 0.9 * q[2], 1.3 * q[2], 0, 0, TAU);
       ctx.fill();
@@ -1001,7 +1345,8 @@
       const q = cam.P(p);
       if (!q) continue;
       const tw = 0.75 + 0.25 * Math.sin(S.t * (1.4 + (i % 4) * 0.3) + i * 2.1);
-      glow(q[0], q[1], 9 * q[2], 'bulb', [255, 190, 110], 0.55 * tw, 0.5);
+      const b = BULBS[i % BULBS.length];
+      glow(q[0], q[1], 9 * q[2], 'bulb' + (i % BULBS.length), b, 0.6 * tw, 0.5);
     }
     ctx.globalCompositeOperation = 'source-over';
   }
@@ -1077,12 +1422,27 @@
         ctx.beginPath(); ctx.moveTo(sg[0][0], sg[0][1]); ctx.lineTo(sg[1][0], sg[1][1]);
         ctx.lineWidth = lw([x, 50, 0], 0.35); ctx.strokeStyle = 'rgba(0,0,0,0.18)'; ctx.stroke();
       }
+      ctx.beginPath();
+      for (let x = -516; x <= 516; x += 22) {
+        for (const dx of [0, 3.2]) {
+          const sg = screenSeg([x + dx, 94, 0.03], [x + dx, 560, 0.03]);
+          if (!sg) continue;
+          ctx.moveTo(sg[0][0], sg[0][1]);
+          ctx.lineTo(sg[1][0], sg[1][1]);
+        }
+      }
+      ctx.lineWidth = lw([0, 160, 0], 0.5);
+      ctx.strokeStyle = 'rgba(255,226,190,0.035)';
+      ctx.stroke();
       ctx.globalCompositeOperation = 'lighter';
       const pool = (p, rcm, rgb, a, soft) => { const q = cam.P(p); if (q) glow(q[0], q[1], rcm * q[2], 'pool' + rgb.join(), rgb, a, soft); };
       pool([112, 168, 0], 240, [170, 96, 40], 0.85, 0.7);
       pool([112, 168, 0], 80, [255, 170, 80], 0.32, 0.6);
       pool([0, 182, 0], 130, [150, 88, 38], 0.6, 0.8);
       pool([-200, 165, 0], 150, [44, 60, 104], 0.5, 0.8);
+      pool([-57, 176, 0], 85, [30, 140, 132], 0.55, 0.8);
+      pool([57, 136, 0], 60, [150, 40, 150], 0.5 * flick.lava(), 0.8);
+      pool([112, 200, 0], 85, [210, 50, 120], 0.55 * flick.neon(), 0.75);
       if (S.glow > 0 && S.mouth) pool([S.mouth[0], S.mouth[1], 0], 70 + 110 * S.glow, [150, 110, 60], S.glow * 0.8, 0.75);
       ctx.globalCompositeOperation = 'source-over';
       ctx.restore();
@@ -1143,6 +1503,12 @@
       if (under) glow(under[0], under[1], 28 * under[2], 'lampcore', [255, 220, 160], 0.6, 0.5);
     }
     drawFairyGlow();
+    const dome = cam.P(add(TEAL_LAMP, [0, 3, 2]));
+    if (dome) glow(dome[0], dome[1], 26 * dome[2], 'teal', [90, 230, 215], 0.45, 0.5);
+    const lava = cam.P(add(LAVA, [0, 15, 2]));
+    if (lava) glow(lava[0], lava[1], 22 * lava[2], 'lava', [240, 90, 200], 0.4 * flick.lava(), 0.5);
+    const flame = cam.P(add(CANDLE, [0, 8.5, 0]));
+    if (flame) glow(flame[0], flame[1], 10 * flame[2], 'candle', [255, 170, 80], 0.6 * flick.candle(), 0.45);
     const ph = cam.P([64, 59, 97]);
     if (ph && S.phone > 0) glow(ph[0], ph[1], 26 * ph[2], 'phone', [180, 200, 255], S.phone * 0.5, 0.6);
     drawDust();
@@ -1657,7 +2023,7 @@
 
   function drawVignette(p) {
     const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.25, W / 2, H / 2, Math.hypot(W, H) * 0.62);
-    const k = 0.62 + 0.2 * smooth(seg(p, 0.37, 0.46)) - 0.4 * S.glow;
+    const k = 0.7 + 0.15 * smooth(seg(p, 0.37, 0.46)) - 0.45 * S.glow;
     g.addColorStop(0, 'rgba(8,5,3,0)');
     g.addColorStop(1, `rgba(8,5,3,${clamp01(k)})`);
     ctx.fillStyle = g;
@@ -1863,7 +2229,7 @@
   }).observe(journey);
 
   resize();
-  document.fonts.ready.then(() => { labelWidths.clear(); measureJourney(); if (!running) render(current); });
+  document.fonts.ready.then(() => { labelWidths.clear(); for (const k in artCache) delete artCache[k]; measureJourney(); if (!running) render(current); });
   addEventListener('load', measureJourney);
   for (const img of Object.values(dishes)) img.addEventListener('load', () => { if (!running) render(current); });
 
