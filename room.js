@@ -1,6 +1,8 @@
 (() => {
   'use strict';
 
+  const { t, base: A } = window.BocalI18n;
+
   const canvas = document.getElementById('room');
   const journey = document.getElementById('journey');
   if (!canvas || !journey) return;
@@ -68,7 +70,7 @@
   const dishes = {};
   for (const name of ['ramen', 'pizza', 'pancakes', 'wine', 'banhmi', 'tacos', 'icecream', 'bao', 'mezze', 'burger', 'sushi']) {
     const img = new Image();
-    img.src = `img/dishes/${name}.webp`;
+    img.src = `${A}img/dishes/${name}.webp`;
     dishes[name] = img;
   }
   const ready = (img) => img && img.complete && img.naturalWidth > 0;
@@ -362,12 +364,12 @@
   const tokenKinds = (n, s) => Array.from({ length: n }, (_, i) => ['ig', 'tt', 'yt', 'p0', 'p1', 'p2', 'p3', 'p4', 'ig', 'yt'][(i * 7 + s) % 10]);
 
   const jars = [
-    { name: 'Recettes', emoji: '🍝', lid: 'soleil', x: -32, plank: 1, tokens: tokenKinds(9, 1) },
-    { name: 'Restos', emoji: '🍜', lid: 'tomate', x: 0, plank: 1, target: true, tokens: ['pizza', 'pancakes', 'wine', 'banhmi', 'tacos', 'icecream', 'bao'] },
-    { name: 'Week-end', emoji: '✈️', lid: 'ciel', x: 32, plank: 1, tokens: tokenKinds(5, 4) },
-    { name: 'Séries', emoji: '🎬', lid: 'lavande', x: -30, plank: 0, tokens: tokenKinds(6, 2) },
-    { name: 'Déco', emoji: '🛋️', lid: 'sauge', x: 2, plank: 0, tokens: tokenKinds(4, 6) },
-    { name: 'Cadeaux', emoji: '🎁', lid: 'rose', x: 32, plank: 0, tokens: tokenKinds(3, 3) },
+    { name: t('jarRecettes'), emoji: '🍝', lid: 'soleil', x: -32, plank: 1, tokens: tokenKinds(9, 1) },
+    { name: t('jarRestos'), emoji: '🍜', lid: 'tomate', x: 0, plank: 1, target: true, tokens: ['pizza', 'pancakes', 'wine', 'banhmi', 'tacos', 'icecream', 'bao'] },
+    { name: t('jarWeekend'), emoji: '✈️', lid: 'ciel', x: 32, plank: 1, tokens: tokenKinds(5, 4) },
+    { name: t('jarSeries'), emoji: '🎬', lid: 'lavande', x: -30, plank: 0, tokens: tokenKinds(6, 2) },
+    { name: t('jarDeco'), emoji: '🛋️', lid: 'sauge', x: 2, plank: 0, tokens: tokenKinds(4, 6) },
+    { name: t('jarCadeaux'), emoji: '🎁', lid: 'rose', x: 32, plank: 0, tokens: tokenKinds(3, 3) },
   ].map((j) => {
     const w = JW;
     const slots = [];
@@ -813,7 +815,7 @@
     g.strokeRect(11, 11, w - 22, h - 22);
     g.fillStyle = '#2B1D12';
     g.font = '800 30px "DM Sans", sans-serif';
-    g.fillText('ÉTÉ', 38, 64);
+    g.fillText(t('posterSummer'), 38, 64);
   }
 
   function paintJazz(g, w, h) {
@@ -850,7 +852,7 @@
     g.fillText('JAZZ', w / 2, 118);
     g.fillStyle = 'rgba(251,243,228,0.85)';
     g.font = '700 25px "DM Sans", sans-serif';
-    g.fillText('SAMEDI · 21 H', w / 2, 158);
+    g.fillText(t('posterJazzDate'), w / 2, 158);
   }
 
   function drawFramed(frame, R, name, paint) {
@@ -1533,22 +1535,22 @@
   }
 
   const CHAT = [
-    { who: 'Inès', text: 'On se fait un resto samedi ?' },
-    { who: 'Max', text: 'Vous avez une idée ?', me: true },
-    { who: 'Léa', text: 'Oui ! Regardez ça' },
+    { who: 'Inès', text: t('chat')[0] },
+    { who: 'Max', text: t('chat')[1], me: true },
+    { who: 'Léa', text: t('chat')[2] },
     { who: 'Léa', link: true },
-    { who: 'Sam', text: 'Trop bien !' },
-    { who: 'Noah', text: 'Je ramène le dessert' },
-    { who: 'Inès', text: 'Vous avez vu le match ?' },
-    { who: 'Sam', text: 'On dit 19 h ?' },
-    { who: 'Noah', text: 'Qui a un chargeur ?' },
-    { who: 'Inès', text: 'Regardez mon chat' },
-    { who: 'Sam', text: 'Je peux plus finalement' },
-    { who: 'Léa', text: 'Trop hâte' },
-    { who: 'Noah', text: 'Vous avez vu ma story ?' },
-    { who: 'Inès', text: 'Qui ramène les chips ?' },
+    { who: 'Sam', text: t('chat')[3] },
+    { who: 'Noah', text: t('chat')[4] },
+    { who: 'Inès', text: t('chat')[5] },
+    { who: 'Sam', text: t('chat')[6] },
+    { who: 'Noah', text: t('chat')[7] },
+    { who: 'Inès', text: t('chat')[8] },
+    { who: 'Sam', text: t('chat')[9] },
+    { who: 'Léa', text: t('chat')[10] },
+    { who: 'Noah', text: t('chat')[11] },
+    { who: 'Inès', text: t('chat')[12] },
   ];
-  const LINK = { title: 'Le ramen caché derrière Flagey', site: 'instagram.com', dish: 'ramen' };
+  const LINK = { title: t('titles').ramen, site: 'instagram.com', dish: 'ramen' };
   const CHAT_ANCHOR = [58, 68, 105];
   const CHAT_CM = 0.16;
   const CHAT_T0 = 0.06, CHAT_T1 = 0.215, RESCUE = 0.232, FLY_END = 0.322, DROP_END = 0.338;
@@ -1834,12 +1836,8 @@
   }
 
   const CARDS = [
-    ['ramen', 'Le ramen caché derrière Flagey', 'Léa'], ['pizza', 'La meilleure pizza napolitaine de Gand ?', 'Sam'],
-    ['bao', 'Les bao les plus moelleux de Bruxelles', 'toi'], ['mezze', 'Mezze libanais à partager', 'Léa'],
-    ['pancakes', 'Brunch XXL du dimanche', 'Inès'], ['sushi', "Sushis : l'adresse qu'on garde pour nous", 'Sam'],
-    ['burger', 'Le smash burger dont tout le monde parle', 'Inès'], ['wine', 'Le bar à vins où il faut réserver', 'toi'],
-    ['banhmi', 'Bánh mì : 3 adresses testées', 'Noah'], ['tacos', 'Tacos de rue à Saint-Gilles', 'Léa'],
-    ['icecream', 'Glaces artisanales : notre top 5', 'Sam'],
+    ['ramen', 'Léa'], ['pizza', 'Sam'], ['bao', t('you')], ['mezze', 'Léa'], ['pancakes', 'Inès'], ['sushi', 'Sam'],
+    ['burger', 'Inès'], ['wine', t('you')], ['banhmi', 'Noah'], ['tacos', 'Léa'], ['icecream', 'Sam'],
   ];
   const inner = [];
   {
@@ -1888,7 +1886,8 @@
     ctx.restore();
   }
 
-  function drawMiniCard([dish, title, who]) {
+  function drawMiniCard([dish, who]) {
+    const title = t('titles')[dish];
     const bw = 250, bh = 78;
     ctx.translate(-bw / 2, -bh / 2);
     roundRect(5, 5, bw, bh, 18);
@@ -2088,7 +2087,7 @@
   const beatButtons = [...document.querySelectorAll('[data-beat]')];
   const dockNext = document.querySelector('.dock-next');
   const dockBack = document.querySelector('.dock-back');
-  const DOCK_LABELS = ["C'est parti", 'Suivant', 'Suivant', 'Suivant', 'Plonger dedans'];
+  const DOCK_LABELS = t('dock');
   let pilot = null, shownBeat = -1;
   const loader = document.getElementById('loader');
   let introReady = !loader;

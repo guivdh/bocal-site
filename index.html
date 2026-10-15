@@ -9,8 +9,14 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Bocal, le bocal des liens">
 <meta property="og:description" content="Range à plusieurs les liens qu'on s'envoie : restos, recettes, vidéos… Sans compte, sans pub, sans traceur.">
-<meta property="og:image" content="img/og.png">
+<meta property="og:image" content="https://bocal-app.be/img/og.png">
+<meta property="og:locale" content="fr_BE">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://bocal-app.be/">
+<link rel="alternate" hreflang="fr" href="https://bocal-app.be/">
+<link rel="alternate" hreflang="en" href="https://bocal-app.be/en/">
+<link rel="alternate" hreflang="nl" href="https://bocal-app.be/nl/">
+<link rel="alternate" hreflang="x-default" href="https://bocal-app.be/en/">
 <link rel="icon" href="img/icon.svg" type="image/svg+xml">
 <link rel="icon" href="img/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
@@ -18,6 +24,7 @@
 <link rel="preload" href="fonts/DMSans-Bold.woff" as="font" type="font/woff" crossorigin>
 <link rel="stylesheet" href="style.css">
 <noscript><style>.loader{display:none}.cap-hero{opacity:1;visibility:visible;transform:translateY(-50%)}.journey{height:100svh}.reveal{opacity:1;transform:none}</style></noscript>
+<script src="i18n.js" defer></script>
 <script src="site.js" defer></script>
 <script src="room.js" defer></script>
 </head>
@@ -47,6 +54,14 @@
     <a href="#vie-privee">Vie privée</a>
     <a href="#faq">Questions</a>
   </nav>
+  <details class="langs">
+    <summary aria-label="Langue : français">FR<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+    <div class="langs-menu">
+      <a href="./" data-lang="fr" hreflang="fr" lang="fr" aria-current="true">Français</a>
+      <a href="en/" data-lang="en" hreflang="en" lang="en">English</a>
+      <a href="nl/" data-lang="nl" hreflang="nl" lang="nl">Nederlands</a>
+    </div>
+  </details>
   <button class="sound" type="button" aria-pressed="true" data-sound>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.6 7.6 0 0 1 0 11"/><path class="mute" d="M16 9.5l5 5m0-5l-5 5"/></svg>
     <span class="sound-label">Son</span>

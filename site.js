@@ -1,6 +1,8 @@
 (() => {
   'use strict';
 
+  const { t, base: A, screens: SCREENS } = window.BocalI18n;
+
   const PLAY_URL = null;
 
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -105,7 +107,7 @@
     function refresh() {
       for (const b of $$('[data-sound]')) {
         b.setAttribute('aria-pressed', String(on));
-        b.setAttribute('aria-label', on ? 'Couper le son' : 'Activer le son');
+        b.setAttribute('aria-label', on ? t('soundOff') : t('soundOn'));
         b.classList.toggle('needs-tap', on && !unlocked);
       }
     }
@@ -148,8 +150,8 @@
 
   if (PLAY_URL) {
     for (const a of $$('[data-store]')) a.href = PLAY_URL;
-    for (const s of $$('[data-store-label]')) s.textContent = 'Télécharger sur Google Play';
-    for (const a of $$('.store-link')) a.textContent = 'Télécharger';
+    for (const s of $$('[data-store-label]')) s.textContent = t('storeDownload');
+    for (const a of $$('.store-link')) a.textContent = t('storeShort');
   }
 
   const measure = document.createElement('canvas').getContext('2d');
@@ -175,7 +177,7 @@
       const rect = `x="${x}" y="${y}" width="${size}" height="${size}" rx="6.6"`;
       let fill;
       if (DISHES.has(kind)) {
-        fill = `<clipPath id="${id}c${i}"><rect ${rect}/></clipPath><rect ${rect} fill="#F9DDD5"/><image href="img/dishes/${kind}.webp" x="${x}" y="${y}" width="${size}" height="${size}" clip-path="url(#${id}c${i})" preserveAspectRatio="xMidYMid slice"/>`;
+        fill = `<clipPath id="${id}c${i}"><rect ${rect}/></clipPath><rect ${rect} fill="#F9DDD5"/><image href="${A}img/dishes/${kind}.webp" x="${x}" y="${y}" width="${size}" height="${size}" clip-path="url(#${id}c${i})" preserveAspectRatio="xMidYMid slice"/>`;
       } else if (kind === 'ig') fill = `<rect ${rect} fill="url(#${id}ig)"/>`;
       else if (kind === 'tt') fill = `<rect ${rect} fill="#111"/>`;
       else if (kind === 'yt') fill = `<rect ${rect} fill="#E62117"/><path d="M${x + 9} ${y + 7}l8 4.75-8 4.75z" fill="#fff"/>`;
@@ -217,15 +219,12 @@
     const content = screens || (() => {
       const img = document.createElement('img');
       const name = el.dataset.screen;
-      img.src = `img/screens/${name}.webp`;
+      img.src = `${A}img/${SCREENS}/${name}.webp`;
       img.width = 390;
       img.height = 844;
       img.loading = 'lazy';
       img.decoding = 'async';
-      img.alt = {
-        home: "L'accueil de Bocal : six bocaux sur deux étagères, Restos, Recettes, Week-end, Séries, Déco et Cadeaux, puis « Ce qui s'est passé ».",
-        invite: "La feuille « Inviter dans Restos » avec un QR code, le code K7QM-P3XA et le bouton « Envoyer le lien ».",
-      }[name] || '';
+      img.alt = { home: t('altHome'), invite: t('altInvite') }[name] || '';
       return img;
     })();
     el.textContent = '';
@@ -310,18 +309,16 @@
     else tiltRunning = false;
   }
 
-  const LIDS = [
-    ['tomate', 'Tomate', '#E0533D'], ['ciel', 'Ciel', '#4D96D9'], ['soleil', 'Soleil', '#F2C14E'], ['sauge', 'Sauge', '#6FA36B'],
-    ['lavande', 'Lavande', '#9B7FD9'], ['rose', 'Rose', '#E68AA8'], ['mandarine', 'Mandarine', '#EE8A3C'], ['encre', 'Encre', '#2B1D12'],
-  ];
+  const LIDS = ['#E0533D', '#4D96D9', '#F2C14E', '#6FA36B', '#9B7FD9', '#E68AA8', '#EE8A3C', '#2B1D12']
+    .map((color, i) => [i, t('colors')[i], color]);
   const EMOJIS = ['🍝', '🍰', '🍷', '✈️', '🏖️', '🏠', '🛋️', '🎁', '🎬', '📚', '🎵', '🌿'];
-  const builder = { lid: '#E0533D', emoji: '🍝', name: 'Recettes', tokens: ['pizza', 'pancakes', 'icecream', 'tacos', 'banhmi'] };
+  const builder = { lid: '#E0533D', emoji: '🍝', name: t('builderName'), tokens: ['pizza', 'pancakes', 'icecream', 'tacos', 'banhmi'] };
   const builderJar = $('#builder-jar');
   const nameInput = $('#builder-name');
 
   function renderBuilder(anim) {
     if (!builderJar) return;
-    const name = (nameInput.value.trim() || 'Mon bocal').slice(0, 14);
+    const name = (nameInput.value.trim() || t('myJar')).slice(0, 14);
     builderJar.innerHTML = jarSVG({ lid: builder.lid, label: `${name} ${builder.emoji}`, tokens: builder.tokens });
     if (anim === 'lid') restart($('.jar-lid', builderJar), 'hop');
     if (anim === 'body') restart($('.jar-body', builderJar), 'squash');
@@ -351,7 +348,7 @@
       b.type = 'button';
       b.className = 'emoji';
       b.textContent = e;
-      b.setAttribute('aria-label', `Emoji ${e}`);
+      b.setAttribute('aria-label', `${t('emoji')} ${e}`);
       b.setAttribute('aria-pressed', String(e === builder.emoji));
       b.addEventListener('click', () => {
         builder.emoji = e;
@@ -392,18 +389,18 @@
     rounds: 0,
   };
   const ARRIVALS = [
-    { who: 'Léa', av: '.la-1', dish: 'mezze', title: 'Mezze libanais à partager' },
-    { who: 'Inès', av: '.la-2', dish: 'burger', title: 'Le smash burger dont tout le monde parle' },
-    { who: 'Sam', av: '.la-3', dish: 'sushi', title: "Sushis : l'adresse qu'on garde pour nous" },
+    { who: 'Léa', av: '.la-1', dish: 'mezze', title: t('titles').mezze },
+    { who: 'Inès', av: '.la-2', dish: 'burger', title: t('titles').burger },
+    { who: 'Sam', av: '.la-3', dish: 'sushi', title: t('titles').sushi },
   ];
 
   function renderLive(fresh) {
-    live.jar.innerHTML = jarSVG({ lid: '#E0533D', label: 'Restos 🍜', tokens: live.tokens, fresh });
+    live.jar.innerHTML = jarSVG({ lid: '#E0533D', label: `${t('jarRestos')} 🍜`, tokens: live.tokens, fresh });
   }
 
   function feedRow(a) {
     const li = document.createElement('li');
-    li.innerHTML = `<img src="img/dishes/${a.dish}.webp" alt="" width="96" height="96"><span><b>${a.who}</b> a ajouté « ${escapeHtml(a.title)} » dans Restos 🍜 <i>· à l'instant</i></span>`;
+    li.innerHTML = `<img src="${A}img/dishes/${a.dish}.webp" alt="" width="96" height="96"><span>${t('added')(a.who, escapeHtml(a.title), `${t('jarRestos')} 🍜`)}</span>`;
     return li;
   }
 
@@ -421,7 +418,7 @@
     restart(av, 'throw');
     const card = document.createElement('div');
     card.className = 'fly-card';
-    card.innerHTML = `<img src="img/dishes/${a.dish}.webp" alt="" width="96" height="96"><span>${escapeHtml(a.title)}</span>`;
+    card.innerHTML = `<img src="${A}img/dishes/${a.dish}.webp" alt="" width="96" height="96"><span>${escapeHtml(a.title)}</span>`;
     live.stage.append(card);
     const cw = card.offsetWidth, ch = card.offsetHeight;
     const fitX = (x) => Math.min(Math.max(x, cw / 2 + 10), stage.width - cw / 2 - 10);
@@ -495,16 +492,16 @@
     recette: 'M6 4h10a3 3 0 0 1 3 3v13H9a3 3 0 0 1-3-3zM10 9h5M10 13h5',
   };
   const TAGS = [
-    { key: 'all', label: 'Tout', color: '' },
-    { key: 'resto', label: 'Restaurant', color: '#BE123C' },
-    { key: 'sortie', label: 'Sortie', color: '#6D28D9' },
-    { key: 'recette', label: 'Recette', color: '#9A3412' },
+    { key: 'all', label: t('tagAll'), color: '' },
+    { key: 'resto', label: t('tagResto'), color: '#BE123C' },
+    { key: 'sortie', label: t('tagSortie'), color: '#6D28D9' },
+    { key: 'recette', label: t('tagRecette'), color: '#9A3412' },
   ];
   const ITEMS = [
-    { dish: 'ramen', title: 'Le ramen caché derrière Flagey', meta: 'Léa · instagram.com', tags: ['resto'] },
-    { dish: 'pancakes', title: 'Brunch XXL du dimanche', meta: 'Inès · instagram.com', tags: ['resto', 'sortie'] },
-    { dish: 'wine', title: 'Le bar à vins où il faut réserver', meta: 'toi · bxl-apero.be', tags: ['sortie'] },
-    { dish: 'pizza', title: 'La pâte à pizza de Sam', meta: 'Sam · youtube.com', tags: ['recette'] },
+    { dish: 'ramen', title: t('titles').ramen, meta: 'Léa · instagram.com', tags: ['resto'] },
+    { dish: 'pancakes', title: t('titles').pancakes, meta: 'Inès · instagram.com', tags: ['resto', 'sortie'] },
+    { dish: 'wine', title: t('titles').wine, meta: `${t('you')} · bxl-apero.be`, tags: ['sortie'] },
+    { dish: 'pizza', title: t('titles').pizzaRecipe, meta: 'Sam · youtube.com', tags: ['recette'] },
   ];
   const tagRow = $('#tag-row');
   if (tagRow) {
@@ -514,7 +511,7 @@
       const row = document.createElement('div');
       row.className = 'tag-item';
       row.dataset.tags = it.tags.join(' ');
-      row.innerHTML = `<img src="img/dishes/${it.dish}.webp" alt="" width="96" height="96"><span>${it.title}<small>${it.meta}</small></span>`;
+      row.innerHTML = `<img src="${A}img/dishes/${it.dish}.webp" alt="" width="96" height="96"><span>${it.title}<small>${it.meta}</small></span>`;
       list.append(row);
     }
     tagRow.after(list);
@@ -549,9 +546,9 @@
   if (ctaShelf) {
     const holder = $('.cta-jars', ctaShelf);
     const jars = [
-      { lid: '#F2C14E', label: 'Recettes 🍝', tokens: ['p1', 'yt', 'ig', 'p2', 'tt'] },
-      { lid: '#E0533D', label: 'Restos 🍜', tokens: ['pizza', 'pancakes', 'wine', 'banhmi', 'tacos', 'ramen', 'bao'] },
-      { lid: '#4D96D9', label: 'Week-end ✈️', tokens: ['ig', 'p3', 'yt', 'p0'] },
+      { lid: '#F2C14E', label: `${t('jarRecettes')} 🍝`, tokens: ['p1', 'yt', 'ig', 'p2', 'tt'] },
+      { lid: '#E0533D', label: `${t('jarRestos')} 🍜`, tokens: ['pizza', 'pancakes', 'wine', 'banhmi', 'tacos', 'ramen', 'bao'] },
+      { lid: '#4D96D9', label: `${t('jarWeekend')} ✈️`, tokens: ['ig', 'p3', 'yt', 'p0'] },
     ];
     jars.forEach((cfg, i) => {
       const d = document.createElement('div');
