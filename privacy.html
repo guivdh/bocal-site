@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confidentialité · Bocal</title>
+<style>
+  @font-face { font-family: "DM Sans"; font-weight: 400; src: url("fonts/DMSans-Regular.woff") format("woff"); font-display: swap; }
+  @font-face { font-family: "DM Sans"; font-weight: 700; src: url("fonts/DMSans-Bold.woff") format("woff"); font-display: swap; }
+  @font-face { font-family: "DM Sans"; font-weight: 800; src: url("fonts/DMSans-ExtraBold.woff") format("woff"); font-display: swap; }
+  :root { --paper: #FBF3E4; --ink: #2B1D12; --muted: #7A6450; --accent: #E0533D; --link: #9C3A22; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: "DM Sans", system-ui, sans-serif;
+         padding: 28px 16px 60px; line-height: 1.5; font-size: 17px; }
+  main { max-width: 680px; margin: 0 auto; }
+  .logo { font-weight: 800; font-size: 22px; letter-spacing: -1px; text-decoration: none; color: var(--ink); }
+  nav { display: flex; gap: 14px; flex-wrap: wrap; margin: 8px 0 28px; font-size: 15px; }
+  h1 { font-size: 32px; line-height: 1.1; letter-spacing: -1px; margin: 0 0 8px; }
+  h2 { font-size: 22px; letter-spacing: -.5px; margin: 32px 0 8px; }
+  a { color: var(--link); font-weight: 700; }
+  ul { padding-left: 22px; }
+  li { margin-bottom: 8px; }
+  li::marker { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+<a class="logo" href="./">bocal</a>
+<nav><a href="privacy.html">Confidentialité</a><a href="terms.html">Conditions d&#x27;utilisation</a><a href="delete.html">Supprimer mes données</a></nav>
+<h1>Politique de confidentialité</h1>
+<p>Dernière mise à jour : 16 octobre 2026</p>
+<p>Bocal est une app pour ranger à plusieurs les liens qu'on s'envoie. Cette page explique quelles données Bocal utilise, pourquoi, combien de temps, et quels sont tes droits. Elle suit le Règlement général sur la protection des données (RGPD) et la loi belge du 30 juillet 2018 sur la protection des données.</p>
+<p>En bref : pas de compte, pas d'e-mail, pas de publicité, pas de traceur, pas de cookie. Bocal ne garde que ce qu'il faut pour que tes bocaux marchent.</p>
+<h2>Qui est responsable de tes données ?</h2>
+<p>Guillaume Vanden Herrewegen, en Belgique, qui développe et publie Bocal.</p>
+<p>Contact pour toute question sur tes données : <a href="mailto:contact@g-vandenherrewegen.be">contact@g-vandenherrewegen.be</a></p>
+<h2>Quelles données ?</h2>
+<ul><li><strong>Ton prénom</strong> (ou un surnom) : tu le choisis au premier lancement. Les membres de tes bocaux le voient.</li><li><strong>Un identifiant technique</strong> : un numéro créé au hasard par l'app au premier lancement, sans lien avec ton identité. Il sert à te reconnaître sans compte ni mot de passe.</li><li><strong>Tes bocaux</strong> : leur nom, leur couleur, leur emoji, leurs membres et qui en est l'admin.</li><li><strong>Les liens que tu ajoutes</strong> : l'adresse du lien, ses tags, la date, et qui l'a ajouté. Pour afficher un aperçu, le téléphone de la personne qui ajoute le lien lit sur sa page le titre, l'adresse de l'image et le nom du site, puis les enregistre avec le lien. Le serveur copie ensuite cette image publique dans un espace privé, visible seulement par les membres du bocal.</li><li><strong>Les codes d'invitation</strong> de tes bocaux, et les codes faux essayés (gardés un jour au plus, pour bloquer ceux qui essaient de deviner des codes).</li><li><strong>Des données techniques</strong> : comme tout service en ligne, le serveur reçoit l'adresse IP de ton téléphone à chaque échange. Elle sert à faire marcher le service et à le protéger contre les abus, et elle est effacée des journaux du serveur après quelques jours.</li></ul>
+<p>Bocal ne demande <strong>jamais</strong> ton nom de famille, ton e-mail, ton numéro de téléphone, ta position, tes contacts ou tes photos.</p>
+<h2>Pourquoi, et sur quelle base ?</h2>
+<ul><li><strong>Faire marcher Bocal</strong> (créer des bocaux, inviter, ajouter et afficher des liens, retrouver sa place avec un code) : c'est le service que tu demandes en utilisant l'app (RGPD, article 6.1.b, exécution du contrat).</li><li><strong>Protéger le service</strong> (limites contre les abus, blocage après trop de codes faux, journaux techniques) : intérêt légitime à garder Bocal sûr et disponible pour tous (article 6.1.f).</li></ul>
+<p>Tes données ne sont <strong>jamais</strong> vendues, ni utilisées pour de la publicité, ni pour établir un profil de toi.</p>
+<h2>Qui voit tes données ?</h2>
+<ul><li><strong>Les membres de tes bocaux</strong> voient ton prénom, les liens que tu ajoutes et le contenu des bocaux. Toute personne qui a le code d'un bocal voit la liste de ses membres et peut y entrer : ne partage tes codes qu'avec des personnes de confiance.</li><li><strong>Supabase</strong> (Supabase Inc.) héberge la base de données de Bocal, sur des serveurs situés dans l'Union européenne. Supabase agit comme sous-traitant, selon un contrat de traitement des données conforme au RGPD. Pour l'assistance et la maintenance, Supabase peut accéder aux données depuis d'autres pays, avec les garanties prévues par le RGPD (clauses contractuelles types de la Commission européenne).</li><li><strong>GitHub</strong> (GitHub Inc.) héberge la page web qui s'ouvre quand tu touches un lien d'invitation. GitHub reçoit l'adresse IP de qui ouvre la page (certifié au Data Privacy Framework UE–États-Unis).</li><li><strong>Les sites des liens</strong> : pour l'aperçu, seul le téléphone de la personne qui ajoute un lien ouvre sa page (ou l'interface d'aperçu de YouTube ou TikTok). Le site reçoit alors l'adresse IP de ce téléphone, comme quand on ouvre le lien soi-même. L'image d'aperçu est téléchargée par le serveur de Bocal : les autres membres ne contactent jamais ce site, sauf s'ils ouvrent le lien.</li></ul>
+<h2>Combien de temps ?</h2>
+<ul><li>Tes données restent tant que tu utilises Bocal.</li><li>Quand tu quittes un bocal, ta place y est supprimée. Les liens que tu y as ajoutés restent pour les autres membres.</li><li>Un bocal sans aucun membre est supprimé tout de suite, avec ses liens.</li><li>La copie de l'image d'aperçu d'un lien est effacée quand le lien est supprimé.</li><li><strong>Supprimer mes données</strong> (dans l'app : ton initiale en haut de l'accueil) efface tout de suite ton prénom, ton identifiant et tes places dans les bocaux. Les liens que tu as ajoutés à des bocaux partagés y restent, sans ton nom.</li><li>Un identifiant sans aucun bocal depuis 30 jours (par exemple si tu as désinstallé l'app) est effacé automatiquement.</li><li>Les codes faux essayés sont effacés après un jour.</li></ul>
+<h2>Cookies et stockage sur ton téléphone</h2>
+<p>Bocal n'utilise <strong>aucun cookie</strong>, aucun outil de mesure d'audience, aucun traceur publicitaire.</p>
+<p>L'app garde sur ton téléphone uniquement ce qui est nécessaire pour fonctionner : ta session (pour ne pas te redemander ton prénom à chaque ouverture) et tes réglages (sons, vibrations, langue). C'est strictement nécessaire au service que tu demandes : aucun consentement n'est requis pour cela (directive « vie privée et communications électroniques », article 5.3, et loi belge du 13 juin 2005, article 129). Désinstaller l'app efface tout.</p>
+<p>La page web des invitations ne dépose aucun cookie et n'utilise aucun traceur.</p>
+<h2>Tes droits</h2>
+<p>Tu peux à tout moment :</p>
+<ul><li><strong>accéder</strong> à tes données et en recevoir une copie dans un format courant (droit d'accès et à la portabilité) ;</li><li><strong>corriger</strong> ton prénom (dans l'app, ou en nous écrivant) ;</li><li><strong>effacer</strong> tes données (« Supprimer mes données » dans l'app, ou en nous écrivant) ;</li><li><strong>t'opposer</strong> à un traitement ou en demander la <strong>limitation</strong>.</li></ul>
+<p>Écris à <a href="mailto:contact@g-vandenherrewegen.be">contact@g-vandenherrewegen.be</a> en indiquant ton prénom dans Bocal et le nom d'un de tes bocaux, pour qu'on puisse te retrouver sans compte. Réponse dans un délai d'un mois.</p>
+<p>Si tu penses que tes droits ne sont pas respectés, tu peux porter plainte auprès de l'<strong>Autorité de protection des données</strong> : rue de la Presse 35, 1000 Bruxelles, <a href="https://www.autoriteprotectiondonnees.be">www.autoriteprotectiondonnees.be</a>, contact@apd-gba.be.</p>
+<h2>Âge minimum</h2>
+<p>Bocal est destiné aux personnes de 13 ans et plus (âge fixé en Belgique pour consentir seul à un service en ligne). En dessous, demande l'accord d'un parent.</p>
+<h2>Sécurité</h2>
+<p>Les échanges entre l'app et le serveur sont chiffrés (HTTPS). Chaque personne ne peut lire et modifier que les bocaux dont elle est membre : c'est vérifié par la base de données elle-même, pas seulement par l'app. Des limites empêchent les abus (nombre de bocaux, de liens, de codes essayés).</p>
+<h2>Changements</h2>
+<p>Si cette politique change, la nouvelle version sera publiée dans l'app et sur <a href="privacy.html">privacy.html</a>, avec sa date.</p>
+</main>
+</body>
+</html>
