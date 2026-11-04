@@ -263,10 +263,10 @@
     else tiltRunning = false;
   }
 
-  const LIDS = ['#E0533D', '#4D96D9', '#F2C14E', '#6FA36B', '#9B7FD9', '#E68AA8', '#EE8A3C', '#2B1D12']
+  const LIDS = ['#E0533D', '#4D96D9', '#F2C14E', '#6FA36B']
     .map((color, i) => [i, t('colors')[i], color]);
-  const EMOJIS = ['🍝', '🍰', '🍷', '✈️', '🏖️', '🏠', '🛋️', '🎁', '🎬', '📚', '🎵', '🌿'];
-  const builder = { lid: '#E0533D', emoji: '🍝', name: t('builderName'), tokens: ['pizza', 'pancakes', 'icecream', 'tacos', 'banhmi'] };
+  const EMOJIS = ['🫙', '🍝', '🍰', '✈️', '🏠', '🎁', '🎬', '📚', '🎵', '❤️'];
+  const builder = { lid: '#E0533D', emoji: '🍰', name: t('builderName'), tokens: ['pizza', 'pancakes', 'icecream', 'tacos', 'banhmi'] };
   const builderJar = $('#builder-jar');
   const nameInput = $('#builder-name');
 
@@ -349,12 +349,12 @@
   ];
 
   function renderLive(fresh) {
-    live.jar.innerHTML = jarSVG({ lid: '#E0533D', label: `${t('jarRestos')} 🍜`, tokens: live.tokens, fresh });
+    live.jar.innerHTML = jarSVG({ lid: '#E0533D', label: `${t('jarRestos')} 🍝`, tokens: live.tokens, fresh });
   }
 
   function feedRow(a) {
     const li = document.createElement('li');
-    li.innerHTML = `<img src="${A}img/dishes/${a.dish}.webp" alt="" width="96" height="96"><span>${t('added')(a.who, escapeHtml(a.title), `${t('jarRestos')} 🍜`)}</span>`;
+    li.innerHTML = `<img src="${A}img/dishes/${a.dish}.webp" alt="" width="96" height="96"><span>${t('added')(a.who, escapeHtml(a.title), `${t('jarRestos')} 🍝`)}</span>`;
     return li;
   }
 
@@ -500,8 +500,8 @@
   if (ctaShelf) {
     const holder = $('.cta-jars', ctaShelf);
     const jars = [
-      { lid: '#F2C14E', label: `${t('jarRecettes')} 🍝`, tokens: ['p1', 'yt', 'ig', 'p2', 'tt'] },
-      { lid: '#E0533D', label: `${t('jarRestos')} 🍜`, tokens: ['pizza', 'pancakes', 'wine', 'banhmi', 'tacos', 'ramen', 'bao'] },
+      { lid: '#F2C14E', label: `${t('jarRecettes')} 🍰`, tokens: ['p1', 'yt', 'ig', 'p2', 'tt'] },
+      { lid: '#E0533D', label: `${t('jarRestos')} 🍝`, tokens: ['pizza', 'pancakes', 'wine', 'banhmi', 'tacos', 'ramen', 'bao'] },
       { lid: '#4D96D9', label: `${t('jarWeekend')} ✈️`, tokens: ['ig', 'p3', 'yt', 'p0'] },
     ];
     jars.forEach((cfg, i) => {

@@ -51,8 +51,7 @@
     brass: hex('#8A6A3C'),
   };
   const LIDS = {
-    tomate: hex('#E0533D'), soleil: hex('#F2C14E'), ciel: hex('#4D96D9'),
-    lavande: hex('#9B7FD9'), sauge: hex('#6FA36B'), rose: hex('#E68AA8'),
+    tomate: hex('#E0533D'), soleil: hex('#F2C14E'), ciel: hex('#4D96D9'), sauge: hex('#6FA36B'),
   };
   const PASTELS = ['#F9DDD5', '#FCE8B2', '#D6EBD3', '#DCE9F7', '#E8DFF8'].map(hex);
 
@@ -352,12 +351,12 @@
   const tokenKinds = (n, s) => Array.from({ length: n }, (_, i) => ['ig', 'tt', 'yt', 'p0', 'p1', 'p2', 'p3', 'p4', 'ig', 'yt'][(i * 7 + s) % 10]);
 
   const jars = [
-    { name: t('jarRecettes'), emoji: '🍝', lid: 'soleil', x: -32, plank: 1, tokens: tokenKinds(9, 1) },
-    { name: t('jarRestos'), emoji: '🍜', lid: 'tomate', x: 0, plank: 1, tokens: ['pizza', 'pancakes', 'wine', 'banhmi', 'tacos', 'icecream', 'bao'] },
+    { name: t('jarRecettes'), emoji: '🍰', lid: 'soleil', x: -32, plank: 1, tokens: tokenKinds(9, 1) },
+    { name: t('jarRestos'), emoji: '🍝', lid: 'tomate', x: 0, plank: 1, tokens: ['pizza', 'pancakes', 'wine', 'banhmi', 'tacos', 'icecream', 'bao'] },
     { name: t('jarWeekend'), emoji: '✈️', lid: 'ciel', x: 32, plank: 1, tokens: tokenKinds(5, 4) },
-    { name: t('jarSeries'), emoji: '🎬', lid: 'lavande', x: -30, plank: 0, tokens: tokenKinds(6, 2) },
-    { name: t('jarDeco'), emoji: '🛋️', lid: 'sauge', x: 2, plank: 0, tokens: tokenKinds(4, 6) },
-    { name: t('jarCadeaux'), emoji: '🎁', lid: 'rose', x: 32, plank: 0, tokens: tokenKinds(3, 3) },
+    { name: t('jarSeries'), emoji: '🎬', lid: 'sauge', x: -30, plank: 0, tokens: tokenKinds(6, 2) },
+    { name: t('jarDeco'), emoji: '🏠', lid: 'tomate', x: 2, plank: 0, tokens: tokenKinds(4, 6) },
+    { name: t('jarCadeaux'), emoji: '🎁', lid: 'soleil', x: 32, plank: 0, tokens: tokenKinds(3, 3) },
   ].map((j) => {
     const w = JW;
     const slots = [];
