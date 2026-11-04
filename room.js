@@ -8,8 +8,6 @@
   if (!canvas || !journey) return;
   let ctx = canvas.getContext('2d', { alpha: false });
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  const query = new URLSearchParams(location.search);
-  const frozen = query.has('p') ? parseFloat(query.get('p')) : null;
 
   const TAU = Math.PI * 2;
   const DEG = Math.PI / 180;
@@ -18,11 +16,6 @@
   const lerp = (a, b, t) => a + (b - a) * t;
   const seg = (t, a, b) => clamp01((t - a) / (b - a));
   const smooth = (t) => { t = clamp01(t); return t * t * (3 - 2 * t); };
-  const inOut = (t) => { t = clamp01(t); return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
-  const outCubic = (t) => 1 - Math.pow(1 - clamp01(t), 3);
-  const inCubic = (t) => Math.pow(clamp01(t), 3);
-  const outBack = (t, k = 1.7) => { const x = clamp01(t) - 1; return 1 + (k + 1) * x * x * x + k * x * x; };
-  const bump = (t, a, b, c, d) => inOut(seg(t, a, b)) * (1 - inOut(seg(t, c, d)));
 
   const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
   const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -30,10 +23,7 @@
   const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   const len = (a) => Math.hypot(a[0], a[1], a[2]);
   const norm = (a) => { const l = len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
-  const vlerp = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
   const rotY = (p, a) => { const c = Math.cos(a), s = Math.sin(a); return [p[0] * c + p[2] * s, p[1], -p[0] * s + p[2] * c]; };
-  const rotX = (p, a) => { const c = Math.cos(a), s = Math.sin(a); return [p[0], p[1] * c - p[2] * s, p[1] * s + p[2] * c]; };
-  const rotZ = (p, a) => { const c = Math.cos(a), s = Math.sin(a); return [p[0] * c - p[1] * s, p[0] * s + p[1] * c, p[2]]; };
 
   let seed = 7;
   const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
@@ -65,7 +55,6 @@
     lavande: hex('#9B7FD9'), sauge: hex('#6FA36B'), rose: hex('#E68AA8'),
   };
   const PASTELS = ['#F9DDD5', '#FCE8B2', '#D6EBD3', '#DCE9F7', '#E8DFF8'].map(hex);
-  const AVATAR = { 'Léa': hex('#B197FC'), 'Sam': hex('#8CC5F0'), 'Inès': hex('#F2C14E'), 'Noah': hex('#F9DDD5'), 'Max': hex('#2B1D12') };
 
   const dishes = {};
   for (const name of ['ramen', 'pizza', 'pancakes', 'wine', 'banhmi', 'tacos', 'icecream', 'bao', 'mezze', 'burger', 'sushi']) {
@@ -186,7 +175,7 @@
   }
 
   const S = {
-    p: 0, t: 0, glow: 0, exposure: 1, phone: 0,
+    t: 0, exposure: 1, phone: 0.12,
     lamp: [112, 158, 70],
     lampBase: [112, 0, 70],
   };
@@ -212,7 +201,6 @@
       { p: add(LAVA, [0, 15, 3]), c: [0.95, 0.32, 0.85], i: 0.8 * flick.lava(), r: 42 },
       { p: [112, 200, 8], c: [1.0, 0.32, 0.62], i: 0.85 * flick.neon(), r: 55 },
       { p: add(CANDLE, [0, 8, 0]), c: [1.0, 0.6, 0.28], i: 0.55 * flick.candle(), r: 30 },
-      { p: S.mouth || [0, 186, 38], c: [1.0, 0.86, 0.6], i: S.glow * 2.6, r: 70 },
       { p: [64, 64, 97], c: [0.7, 0.8, 1.0], i: S.phone * 0.5, r: 30 },
     ];
   }
@@ -365,7 +353,7 @@
 
   const jars = [
     { name: t('jarRecettes'), emoji: '🍝', lid: 'soleil', x: -32, plank: 1, tokens: tokenKinds(9, 1) },
-    { name: t('jarRestos'), emoji: '🍜', lid: 'tomate', x: 0, plank: 1, target: true, tokens: ['pizza', 'pancakes', 'wine', 'banhmi', 'tacos', 'icecream', 'bao'] },
+    { name: t('jarRestos'), emoji: '🍜', lid: 'tomate', x: 0, plank: 1, tokens: ['pizza', 'pancakes', 'wine', 'banhmi', 'tacos', 'icecream', 'bao'] },
     { name: t('jarWeekend'), emoji: '✈️', lid: 'ciel', x: 32, plank: 1, tokens: tokenKinds(5, 4) },
     { name: t('jarSeries'), emoji: '🎬', lid: 'lavande', x: -30, plank: 0, tokens: tokenKinds(6, 2) },
     { name: t('jarDeco'), emoji: '🛋️', lid: 'sauge', x: 2, plank: 0, tokens: tokenKinds(4, 6) },
@@ -383,12 +371,9 @@
       });
     }
     return {
-      ...j, w, y: PLANKS[j.plank], z: 12, dx: 0, dy: 0, dz: 0, spin: 0, squash: 0,
-      lidS: { lift: 0, twist: 0, tiltX: 0, tiltZ: 0, off: [0, 0, 0], gone: false },
-      slots, key: 12.5, extra: null,
+      ...j, w, y: PLANKS[j.plank], z: 12, slots, key: 12.5,
     };
   });
-  const target = jars.find((j) => j.target);
 
   const profiles = new Map();
   function jarProfile(w) {
@@ -469,9 +454,8 @@
   }
 
   function jarXf(j) {
-    const base = [j.x + j.dx, j.y + j.dy, j.z + j.dz];
-    const sq = j.squash;
-    return { base, xf: (q) => add(base, [q[0] * (1 + sq * 0.08), q[1] * (1 - sq * 0.08), q[2] * (1 + sq * 0.08)]) };
+    const base = [j.x, j.y, j.z];
+    return { base, xf: (q) => add(base, q) };
   }
 
   function drawJar(j) {
@@ -490,16 +474,14 @@
       if (q[1] > maxY) maxY = q[1];
     }
     if (maxX < -60 || minX > W + 60 || maxY < -60 || minY > H + 60) return;
-    const dark = Math.max(darkness(center), j.dim || 0);
+    const dark = darkness(center);
 
     const toks = [];
     j.tokens.forEach((kind, i) => {
       const sl = j.slots[i];
       if (!sl) return;
-      const local = rotY([sl.lx, sl.ly + (j.jiggle ? j.jiggle(i) : 0), sl.lz], j.spin);
-      toks.push({ kind, p: xf(local), rot: sl.rot });
+      toks.push({ kind, p: xf([sl.lx, sl.ly, sl.lz]), rot: sl.rot });
     });
-    if (j.extra && j.extra.inside) toks.push(j.extra);
     for (const t of toks) t.d = cam.toCam(t.p)[2];
     toks.sort((a, b) => b.d - a.d);
     for (const t of toks) {
@@ -512,18 +494,6 @@
       ctx.fillStyle = `rgba(16,10,6,${dark})`;
       ctx.fill();
     }
-    if (j.glow > 0) {
-      const g0 = cam.P(add(base, [0, gh * 0.6, 0]));
-      if (g0) {
-        ctx.save();
-        trace(h);
-        ctx.clip();
-        ctx.globalCompositeOperation = 'lighter';
-        glow(g0[0], g0[1], w * s * (0.8 + j.glow * 0.5), 'jarglow', [255, 205, 120], j.glow * 0.95, 0.6);
-        ctx.restore();
-      }
-    }
-
     trace(h);
     ctx.fillStyle = hullGradient(h, ['rgba(255,255,255,0.16)', 'rgba(255,255,255,0.03)', 'rgba(255,255,255,0.02)', 'rgba(255,255,255,0.13)']);
     ctx.fill();
@@ -545,35 +515,8 @@
       ctx.strokeStyle = `rgba(255,250,240,${alpha})`;
       ctx.stroke();
     };
-    const near = 1 - smooth(seg(S.p, 0.68, 0.78));
-    hi(view - 0.78, gh * 0.4, gh * 0.74, 0.07, (0.62 - dark * 0.35) * near);
-    hi(view + 0.95, gh * 0.22, gh * 0.4, 0.035, 0.22 * near);
-
-    const lidOff = j.lidS.lift > 0.05 * w || j.lidS.gone;
-    if (lidOff) {
-      const mouth = screenPoly(ringPoints(xf, 0.26 * w, gh + 0.035 * w, 30));
-      if (mouth) {
-        trace(mouth);
-        ctx.fillStyle = `rgba(28,18,10,${0.35 * (1 - j.glow)})`;
-        ctx.fill();
-        if (j.glow > 0) {
-          ctx.fillStyle = `rgba(255,226,160,${j.glow * 0.22})`;
-          ctx.fill();
-          const mc = cam.P(xf([0, gh + 0.035 * w, 0]));
-          if (mc) {
-            ctx.save();
-            trace(mouth);
-            ctx.clip();
-            ctx.globalCompositeOperation = 'lighter';
-            glow(mc[0], mc[1], 0.3 * w * mc[2] * 1.3, 'mouthglow', [255, 200, 120], j.glow * 0.7, 0.7);
-            ctx.restore();
-          }
-        }
-        ctx.lineWidth = Math.max(0.6, 0.03 * w * s);
-        ctx.strokeStyle = strokeCol;
-        ctx.stroke();
-      }
-    }
+    hi(view - 0.78, gh * 0.4, gh * 0.74, 0.07, 0.62 - dark * 0.35);
+    hi(view + 0.95, gh * 0.22, gh * 0.4, 0.035, 0.22);
 
     trace(h);
     ctx.lineJoin = 'round';
@@ -585,24 +528,19 @@
     ctx.stroke();
 
     drawLabel(j, base, xf, s, dark);
-    if (j.extra && !j.extra.inside) {
-      const q = cam.P(j.extra.p);
-      if (q) drawTokenFast(j.extra.kind, q[0], q[1], 0.235 * w * q[2], j.extra.rot);
-    }
-    if (!j.lidS.gone) drawLid(j, base, dark);
+    drawLid(j, base, dark);
   }
 
   const labelWidths = new Map();
   function drawLabel(j, base, xf, s, dark) {
     const w = j.w, R = w / 2, gh = 1.32 * w;
-    const n = rotY([0, 0, 1], j.spin);
-    const p0 = xf(add(rotY([0, gh * 0.6, 0], j.spin), mul(n, R * 1.02)));
+    const n = [0, 0, 1];
+    const p0 = xf([0, gh * 0.6, R * 1.02]);
     const vis = dot(n, norm(sub(cam.eye, p0)));
     if (vis < 0.08) return;
     const unit = w / 100;
     const q0 = cam.P(p0);
-    const t = rotY([1, 0, 0], j.spin);
-    const qa = cam.P(add(p0, mul(t, unit)));
+    const qa = cam.P(add(p0, [unit, 0, 0]));
     const qb = cam.P(add(p0, [0, -unit, 0]));
     if (!q0 || !qa || !qb) return;
     ctx.save();
@@ -631,12 +569,10 @@
   }
 
   function drawLid(j, base, dark) {
-    const w = j.w, L = j.lidS;
+    const w = j.w;
     const lr = 0.375 * w, lh = 0.17 * w, b = 0.028 * w;
-    const pivot = add(base, [L.off[0], 1.29 * w + L.lift + L.off[1], L.off[2]]);
-    const sq = j.squash;
-    const xf = (q) => add(pivot, rotZ(rotX(rotY([q[0] * (1 + sq * 0.1), q[1] * (1 - sq * 0.15), q[2] * (1 + sq * 0.1)], L.twist), L.tiltX), L.tiltZ));
-    const dirOnly = (q) => rotZ(rotX(rotY(q, L.twist), L.tiltX), L.tiltZ);
+    const pivot = add(base, [0, 1.29 * w, 0]);
+    const xf = (q) => add(pivot, q);
     const prof = [[lr - b, 0], [lr, b], [lr, lh - b], [lr - b, lh]];
     const h = latheHull(xf, prof, segsFor(w * cam.scale(pivot)));
     if (!h) return;
@@ -655,7 +591,7 @@
     ctx.strokeStyle = 'rgba(26,17,10,0.3)';
     for (let k = 0; k < 28; k++) {
       const a = (k / 28) * TAU;
-      const nl = dirOnly([Math.sin(a), 0, Math.cos(a)]);
+      const nl = [Math.sin(a), 0, Math.cos(a)];
       const p1 = xf([lr * Math.sin(a), lh * 0.22, lr * Math.cos(a)]);
       if (!cam.facing(p1, nl)) continue;
       const sg = screenSeg(p1, xf([lr * Math.sin(a), lh * 0.78, lr * Math.cos(a)]));
@@ -665,7 +601,7 @@
       ctx.lineTo(sg[1][0], sg[1][1]);
       ctx.stroke();
     }
-    const nTop = dirOnly([0, 1, 0]);
+    const nTop = [0, 1, 0];
     const topC = xf([0, lh, 0]);
     let top = null;
     if (cam.facing(topC, nTop)) {
@@ -1445,7 +1381,6 @@
       pool([-57, 176, 0], 85, [30, 140, 132], 0.55, 0.8);
       pool([57, 136, 0], 60, [150, 40, 150], 0.5 * flick.lava(), 0.8);
       pool([112, 200, 0], 85, [210, 50, 120], 0.55 * flick.neon(), 0.75);
-      if (S.glow > 0 && S.mouth) pool([S.mouth[0], S.mouth[1], 0], 70 + 110 * S.glow, [150, 110, 60], S.glow * 0.8, 0.75);
       ctx.globalCompositeOperation = 'source-over';
       ctx.restore();
     }
@@ -1491,7 +1426,7 @@
       ctx.restore();
     }
 
-    const sorted = objects.concat(jars.map((j) => ({ kind: 'jar', jar: j, key: j.key + j.dz }))).sort((a, b) => a.key - b.key);
+    const sorted = objects.concat(jars.map((j) => ({ kind: 'jar', jar: j, key: j.key }))).sort((a, b) => a.key - b.key);
     for (const o of sorted) {
       if (o.kind === 'jar') drawJar(o.jar);
       else drawAny(o);
@@ -1512,7 +1447,7 @@
     const flame = cam.P(add(CANDLE, [0, 8.5, 0]));
     if (flame) glow(flame[0], flame[1], 10 * flame[2], 'candle', [255, 170, 80], 0.6 * flick.candle(), 0.45);
     const ph = cam.P([64, 59, 97]);
-    if (ph && S.phone > 0) glow(ph[0], ph[1], 26 * ph[2], 'phone', [180, 200, 255], S.phone * 0.5, 0.6);
+    if (ph) glow(ph[0], ph[1], 26 * ph[2], 'phone', [180, 200, 255], S.phone * 0.5, 0.6);
     drawDust();
     ctx.globalCompositeOperation = 'source-over';
   }
@@ -1528,444 +1463,15 @@
       const q = cam.P(p);
       if (!q) continue;
       const dl = len(sub(p, S.lamp));
-      const a = clamp(1.1 - dl / 140, 0, 1) * 0.55 + S.glow * clamp(1 - len(sub(p, S.mouth || p)) / 60, 0, 1) * 0.6;
+      const a = clamp(1.1 - dl / 140, 0, 1) * 0.55;
       if (a < 0.02) continue;
       glow(q[0], q[1], Math.max(1.2, 0.5 * q[2]), 'dust', [255, 215, 160], a, 0.4);
     }
   }
 
-  const CHAT = [
-    { who: 'Inès', text: t('chat')[0] },
-    { who: 'Max', text: t('chat')[1], me: true },
-    { who: 'Léa', text: t('chat')[2] },
-    { who: 'Léa', link: true },
-    { who: 'Sam', text: t('chat')[3] },
-    { who: 'Noah', text: t('chat')[4] },
-    { who: 'Inès', text: t('chat')[5] },
-    { who: 'Sam', text: t('chat')[6] },
-    { who: 'Noah', text: t('chat')[7] },
-    { who: 'Inès', text: t('chat')[8] },
-    { who: 'Sam', text: t('chat')[9] },
-    { who: 'Léa', text: t('chat')[10] },
-    { who: 'Noah', text: t('chat')[11] },
-    { who: 'Inès', text: t('chat')[12] },
-  ];
-  const LINK = { title: t('titles').ramen, site: 'instagram.com', dish: 'ramen' };
-  const CHAT_ANCHOR = [58, 68, 105];
-  const CHAT_CM = 0.16;
-  const CHAT_T0 = 0.06, CHAT_T1 = 0.215, RESCUE = 0.232, FLY_END = 0.322, DROP_END = 0.338;
-
-  function bubbleSize(m) {
-    if (m.link) return [232, 92];
-    ctx.font = '600 15px "DM Sans", sans-serif';
-    const tw = Math.min(214, ctx.measureText(m.text).width + 26);
-    return m.me ? [tw, 36] : [tw + 28, 52];
-  }
-
-  function linkRect(p) {
-    for (const it of chatLayout(p)) {
-      if (!it.m.link) continue;
-      return [Math.max(-it.y, -360), it.bw, it.bh];
-    }
-    return null;
-  }
-
-  function chatLayout(p) {
-    const items = [];
-    const step = (CHAT_T1 - CHAT_T0) / CHAT.length;
-    let y = 0;
-    for (let i = CHAT.length - 1; i >= 0; i--) {
-      const appear = seg(p, CHAT_T0 + i * step, CHAT_T0 + (i + 0.7) * step);
-      if (appear <= 0) continue;
-      const [bw, bh] = bubbleSize(CHAT[i]);
-      const gap = 8;
-      const hh = (bh + gap) * outCubic(appear);
-      items.push({ i, m: CHAT[i], bw, bh, y: y + bh, appear });
-      y += hh;
-    }
-    return items;
-  }
-
-  function chatScale(anchorScale) { return anchorScale * CHAT_CM * uiScale(); }
-  function uiScale() { return clamp(560 / Math.min(W, H * 1.2), 1, 1.75); }
-
-  function chatOrigin() {
-    const q = cam.P(CHAT_ANCHOR);
-    if (!q) return null;
-    const k = chatScale(q[2]);
-    const width = 300 * k;
-    const x = clamp(q[0] - width * 0.12, 14, Math.max(14, W - 14 - width));
-    return { x, y: q[1], k, q };
-  }
-
-  function drawChat() {
-    const p = S.p;
-    if (p < CHAT_T0 || p > FLY_END + 0.02) return;
-    const o = chatOrigin();
-    if (!o) return;
-    const k = o.k;
-    const fadeAll = 1 - seg(p, RESCUE - 0.012, RESCUE + 0.02);
-    const items = chatLayout(p);
-    ctx.save();
-    ctx.translate(o.x, o.y);
-    ctx.scale(k, k);
-    for (const it of items) {
-      const top = -it.y;
-      const fadeTop = 1 - seg(-top, 300, 420);
-      let a = fadeTop * clamp01(it.appear * 2);
-      if (it.m.link) {
-        if (p > RESCUE - 0.012) continue;
-      } else a *= fadeAll;
-      if (a <= 0.01) continue;
-      ctx.globalAlpha = a;
-      const sc = 0.85 + 0.15 * outBack(it.appear);
-      ctx.save();
-      const left = it.m.me ? 300 - it.bw : 0;
-      ctx.translate(left + it.bw / 2, top + it.bh / 2);
-      ctx.scale(sc, sc);
-      ctx.translate(-it.bw / 2, -it.bh / 2);
-      drawBubble(it.m, it.bw, it.bh, 0);
-      ctx.restore();
-    }
-    ctx.restore();
-    ctx.globalAlpha = 1;
-  }
-
-  function drawBubble(m, bw, bh, highlight) {
-    if (m.link) {
-      drawLinkCard(bw, bh, highlight, 1);
-      return;
-    }
-    let y = 0;
-    if (!m.me) {
-      ctx.font = '700 11px "DM Sans", sans-serif';
-      ctx.fillStyle = 'rgba(251,243,228,0.7)';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'alphabetic';
-      ctx.fillText(m.who, 30, 11);
-      y = 16;
-      ctx.fillStyle = rgba(AVATAR[m.who] || COL.sticker);
-      ctx.beginPath(); ctx.arc(11, y + 27, 10, 0, TAU); ctx.fill();
-      ctx.fillStyle = rgba(COL.ink);
-      ctx.font = '800 10px "DM Sans", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(m.who[0], 11, y + 27.5);
-    }
-    const x = m.me ? 0 : 28, w = m.me ? bw : bw - 28;
-    roundRect(x, y, w, 36, 16);
-    ctx.fillStyle = m.me ? rgba(COL.sticker) : '#FFFFFF';
-    ctx.fill();
-    ctx.fillStyle = rgba(COL.ink);
-    ctx.font = '600 15px "DM Sans", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(m.text, x + 13, y + 18.5, w - 24);
-  }
-
-  function drawLinkCard(bw, bh, highlight, contentAlpha) {
-    ctx.save();
-    if (highlight > 0) {
-      roundRect(5, 5, bw, bh, 18);
-      ctx.fillStyle = rgba(COL.sticker, highlight);
-      ctx.fill();
-    }
-    roundRect(0, 0, bw, bh, 18);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fill();
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = rgba(COL.ink);
-    ctx.stroke();
-    ctx.globalAlpha *= contentAlpha;
-    const img = dishes[LINK.dish];
-    const s = bh - 20;
-    ctx.save();
-    roundRect(10, 10, s, s, 14);
-    ctx.clip();
-    ctx.fillStyle = '#F9DDD5';
-    ctx.fillRect(10, 10, s, s);
-    if (ready(img)) ctx.drawImage(img, 10, 10, s, s);
-    ctx.restore();
-    ctx.fillStyle = rgba(COL.ink);
-    ctx.font = '800 15px "DM Sans", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    const tx = s + 22, tw = bw - tx - 10;
-    const words = LINK.title.split(' ');
-    let line = '', ly = 30;
-    for (const wd of words) {
-      const t = line ? line + ' ' + wd : wd;
-      if (ctx.measureText(t).width > tw && line) { ctx.fillText(line, tx, ly); line = wd; ly += 18; } else line = t;
-    }
-    ctx.fillText(line, tx, ly);
-    ctx.font = '600 12px "DM Sans", sans-serif';
-    ctx.fillStyle = rgba(COL.muted);
-    ctx.fillText(`Léa · ${LINK.site}`, tx, ly + 20);
-    ctx.restore();
-  }
-
-  function flyingLink() {
-    const p = S.p;
-    target.extra = null;
-    if (p < RESCUE - 0.012 || p > DROP_END + 0.05) return null;
-    const rect = linkRect(p);
-    const o = chatOrigin();
-    if (!rect || !o) return null;
-    const [ly, bw, bh] = rect;
-    const c = CHAT_CM * uiScale();
-    const shift = (o.x - o.q[0]) / o.q[2];
-    const start = add(CHAT_ANCHOR, add(mul(cam.r, shift + (bw / 2) * c), mul(cam.u, -(ly + bh / 2) * c)));
-    const w = target.w, gh = 1.32 * w;
-    const { base } = jarXf(target);
-    const above = add(base, [0, gh + 9, 0]);
-    const slot = target.slots[7];
-    const final = add(base, [slot.lx, slot.ly, slot.lz]);
-    const u = seg(p, RESCUE, FLY_END);
-    const e = inOut(u);
-    const ctrl = add(vlerp(start, above, 0.5), [0, 32, 10]);
-    const pos = vlerp(vlerp(start, ctrl, e), vlerp(ctrl, above, e), e);
-    const morph = smooth(seg(u, 0.35, 0.95));
-    if (p >= FLY_END) {
-      const d = seg(p, FLY_END, DROP_END);
-      const fall = inCubic(d);
-      const at = vlerp(above, final, fall);
-      target.extra = { kind: 'ramen', p: at, rot: lerp(0.3, slot.rot, d), inside: d > 0.45 };
-      return null;
-    }
-    return { pos, morph, bw, bh, u, alpha: seg(p, RESCUE - 0.012, RESCUE + 0.004) };
-  }
-
-  function drawFlying(f) {
-    if (!f) return;
-    const q = cam.P(f.pos);
-    if (!q) return;
-    const k = chatScale(q[2]);
-    const tokenPx = 0.235 * target.w * q[2];
-    const w = lerp(f.bw * k, tokenPx, f.morph), h = lerp(f.bh * k, tokenPx, f.morph);
-    ctx.save();
-    ctx.globalAlpha = f.alpha;
-    ctx.translate(q[0], q[1]);
-    ctx.rotate(Math.sin(f.u * Math.PI) * 0.25);
-    const sx = w / lerp(f.bw, f.bh, f.morph);
-    ctx.scale(sx, sx);
-    const bw = lerp(f.bw, f.bh, f.morph), bh = f.bh;
-    ctx.translate(-bw / 2, -bh / 2);
-    if (f.morph < 0.98) {
-      drawLinkCard(bw, bh, 1 - f.morph, 1 - f.morph);
-    }
-    if (f.morph > 0.2) {
-      ctx.globalAlpha = f.alpha * f.morph;
-      const img = dishes[LINK.dish];
-      roundRect(0, 0, bw, bh, bh * 0.28 + (1 - f.morph) * 6);
-      ctx.save();
-      ctx.clip();
-      ctx.fillStyle = '#F9DDD5';
-      ctx.fillRect(0, 0, bw, bh);
-      if (ready(img)) ctx.drawImage(img, (bw - bh) / 2, 0, bh, bh);
-      ctx.restore();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = rgba(COL.ink);
-      ctx.stroke();
-    }
-    ctx.restore();
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = 'lighter';
-    glow(q[0], q[1], Math.max(w, h) * 1.1, 'flyglow', [242, 193, 78], 0.35 * (1 - f.morph * 0.5), 0.5);
-    ctx.globalCompositeOperation = 'source-over';
-  }
-
-  function drawBadge() {
-    const p = S.p;
-    const a = seg(p, 0.03, 0.06) * (1 - seg(p, RESCUE, RESCUE + 0.03));
-    if (a <= 0) return;
-    const q = cam.P([62, 60, 93]);
-    if (!q) return;
-    const n = Math.round(lerp(3, 128, smooth(seg(p, CHAT_T0, CHAT_T1))));
-    const r = Math.max(9, 2.4 * q[2] * uiScale());
-    ctx.save();
-    ctx.globalAlpha = a;
-    ctx.translate(q[0] + r * 0.9, q[1] - r * 1.4);
-    const pulse = 1 + 0.08 * Math.sin(S.t * 6) * (n < 128 ? 1 : 0.3);
-    ctx.scale(pulse, pulse);
-    ctx.font = `800 ${r * 1.05}px "DM Sans", sans-serif`;
-    const label = String(n);
-    const w = Math.max(r * 2, ctx.measureText(label).width + r * 1.1);
-    roundRect(-w / 2, -r, w, 2 * r, r);
-    ctx.fillStyle = rgba(COL.tomato);
-    ctx.fill();
-    ctx.lineWidth = Math.max(1.5, r * 0.18);
-    ctx.strokeStyle = rgba(COL.line);
-    ctx.stroke();
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, 0, r * 0.06);
-    ctx.restore();
-  }
-
-  const sparks = [];
-  {
-    seed = 17;
-    for (let i = 0; i < 70; i++) sparks.push({ b: rr(0.565, 0.8), a: rr(0, TAU), r: rr(0.2, 1), v: rr(30, 70), life: rr(0.06, 0.13), s: rr(0.5, 1.4), star: rand() < 0.35 });
-  }
-  function drawSparks() {
-    if (!S.mouth || S.p < 0.56) return;
-    ctx.globalCompositeOperation = 'lighter';
-    for (const s of sparks) {
-      const age = (S.p - s.b) / s.life;
-      if (age < 0 || age > 1) continue;
-      const rad = s.r * target.w * 0.3 * (1 + age * 1.6);
-      const p = add(S.mouth, [Math.cos(s.a + age) * rad, age * s.v * 0.45, Math.sin(s.a + age) * rad]);
-      const q = cam.P(p);
-      if (!q) continue;
-      const a = Math.sin(age * Math.PI) * 0.9;
-      const r = s.s * 0.55 * q[2];
-      if (s.star) {
-        ctx.save();
-        ctx.translate(q[0], q[1]);
-        ctx.rotate(S.t * 2 + s.a);
-        ctx.fillStyle = `rgba(255,236,180,${a})`;
-        ctx.beginPath();
-        for (let k = 0; k < 8; k++) { const rr2 = k % 2 ? r * 0.3 : r * 1.6; const an = (k / 8) * TAU; ctx.lineTo(Math.cos(an) * rr2, Math.sin(an) * rr2); }
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-      } else glow(q[0], q[1], r * 3, 'spark', [255, 214, 140], a, 0.45);
-    }
-    ctx.globalCompositeOperation = 'source-over';
-  }
-
-  const CARDS = [
-    ['ramen', 'Léa'], ['pizza', 'Sam'], ['bao', t('you')], ['mezze', 'Léa'], ['pancakes', 'Inès'], ['sushi', 'Sam'],
-    ['burger', 'Inès'], ['wine', t('you')], ['banhmi', 'Noah'], ['tacos', 'Léa'], ['icecream', 'Sam'],
-  ];
-  const inner = [];
-  {
-    seed = 5;
-    CARDS.forEach((c, i) => inner.push({ c, a: (i / CARDS.length) * TAU * 2.2 + rr(-0.3, 0.3), r: rr(70, 150), d: 260 + i * 95, rot: rr(-0.25, 0.25) }));
-  }
-
-  function drawInside(q, alpha) {
-    if (alpha <= 0) return;
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    const cx = W / 2, cy = H / 2, R = Math.hypot(W, H) / 2;
-    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
-    g.addColorStop(0, '#FFF8EA');
-    g.addColorStop(0.45, '#FBEFD4');
-    g.addColorStop(0.8, '#F4D486');
-    g.addColorStop(1, '#E8B850');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-    const f = H / 2 / Math.tan(40 * DEG);
-    const travel = q * 1300;
-    for (let i = 0; i < 16; i++) {
-      const d = ((i * 110 - travel) % 1760 + 1760) % 1760 + 30;
-      const r = (230 * f) / d;
-      if (r > R * 2.2) continue;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, TAU);
-      ctx.lineWidth = Math.max(1, (6 * f) / d);
-      ctx.strokeStyle = `rgba(255,255,255,${clamp01(0.5 - d / 3600)})`;
-      ctx.stroke();
-    }
-    const items = inner.map((it) => ({ it, d: it.d - travel })).filter((o) => o.d > 25).sort((a, b) => b.d - a.d);
-    for (const { it, d } of items) {
-      const s = f / d;
-      const x = cx + Math.cos(it.a + q * 0.8) * it.r * s * 1.6;
-      const y = cy + Math.sin(it.a + q * 0.8) * it.r * s * 1.6;
-      const fog = clamp01(1 - (d - 200) / 900);
-      ctx.save();
-      ctx.globalAlpha = alpha * fog * clamp01((d - 25) / 60);
-      ctx.translate(x, y);
-      ctx.rotate(it.rot + q * 0.6);
-      ctx.scale(s * 0.9, s * 0.9);
-      drawMiniCard(it.c);
-      ctx.restore();
-    }
-    ctx.restore();
-  }
-
-  function drawMiniCard([dish, who]) {
-    const title = t('titles')[dish];
-    const bw = 250, bh = 78;
-    ctx.translate(-bw / 2, -bh / 2);
-    roundRect(5, 5, bw, bh, 18);
-    ctx.fillStyle = rgba(COL.sticker);
-    ctx.fill();
-    roundRect(0, 0, bw, bh, 18);
-    ctx.fillStyle = '#fff';
-    ctx.fill();
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = rgba(COL.ink);
-    ctx.stroke();
-    const s = bh - 18;
-    ctx.save();
-    roundRect(9, 9, s, s, 13);
-    ctx.clip();
-    ctx.fillStyle = '#F9DDD5';
-    ctx.fillRect(9, 9, s, s);
-    if (ready(dishes[dish])) ctx.drawImage(dishes[dish], 9, 9, s, s);
-    ctx.restore();
-    ctx.fillStyle = rgba(COL.ink);
-    ctx.font = '800 14px "DM Sans", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    const tx = s + 20, tw = bw - tx - 10;
-    let line = '', ly = 28, lines = 0;
-    for (const wd of title.split(' ')) {
-      const t = line ? line + ' ' + wd : wd;
-      if (ctx.measureText(t).width > tw && line) { if (lines < 1) { ctx.fillText(line, tx, ly); ly += 17; lines++; line = wd; } else { line += '…'; break; } } else line = t;
-    }
-    ctx.fillText(line, tx, ly);
-    ctx.font = '600 12px "DM Sans", sans-serif';
-    ctx.fillStyle = rgba(COL.muted);
-    ctx.fillText(who, tx, ly + 19);
-  }
-
-  const KEYS = [
-    [0.0, [-2, 122, 24, 300, 262, 17, 6, 0.12, 0.03]],
-    [0.09, [34, 98, 70, 190, 150, 18, 9, 0.08, 0]],
-    [0.2, [40, 100, 80, 170, 136, 14, 10, 0.06, 0]],
-    [0.29, [18, 150, 30, 140, 96, 6, 8, 0, 0]],
-    [0.37, [0, 172, 14, 84, 62, 2, 8, 0, 0]],
-    [0.47, [0, 176, 38, 50, 40, -5, 9, 0, 0]],
-    [0.58, [0, 181, 38, 50, 44, -2, 16, 0, 0]],
-    [0.7, [0, 184, 38, 38, 32, 0, 56, 0, 0]],
-    [0.79, [0, 185, 38, 13, 11, 0, 84, 0, 0]],
-    [0.84, [0, 185, 38, 3, 3, 0, 89, 0, 0]],
-  ];
-  const KEYS_PORTRAIT = [
-    [0.0, [-4, 152, 0, 172, 150, 10, 4, 0, -0.23]],
-    [0.09, [44, 98, 72, 112, 130, 18, 9, 0, -0.1]],
-    [0.2, [48, 100, 82, 100, 120, 14, 10, 0, -0.1]],
-    [0.29, [22, 150, 30, 100, 90, 6, 8, 0, -0.04]],
-    [0.37, [0, 172, 14, 50, 50, 2, 8, 0, -0.05]],
-    [0.47, [0, 176, 38, 30, 34, -5, 9, 0, -0.05]],
-    [0.58, [0, 181, 38, 30, 36, -2, 16, 0, -0.04]],
-    [0.7, [0, 184, 38, 24, 28, 0, 56, 0, 0]],
-    [0.79, [0, 185, 38, 9, 9, 0, 84, 0, 0]],
-    [0.84, [0, 185, 38, 2.4, 2.4, 0, 89, 0, 0]],
-  ];
-
-  function spline(keys, t) {
-    if (t <= keys[0][0]) return keys[0][1].slice();
-    const n = keys.length;
-    if (t >= keys[n - 1][0]) return keys[n - 1][1].slice();
-    let i = 0;
-    while (keys[i + 1][0] < t) i++;
-    const [t0, v0] = keys[i], [t1, v1] = keys[i + 1];
-    const h = t1 - t0, s = (t - t0) / h;
-    const tan = (k) => {
-      if (k <= 0 || k >= n - 1) return keys[k][1].map(() => 0);
-      const [ta, va] = keys[k - 1], [tb, vb] = keys[k + 1];
-      return va.map((a, j) => (vb[j] - a) / (tb - ta));
-    };
-    const m0 = tan(i), m1 = tan(i + 1);
-    const s2 = s * s, s3 = s2 * s;
-    const h00 = 2 * s3 - 3 * s2 + 1, h10 = s3 - 2 * s2 + s, h01 = -2 * s3 + 3 * s2, h11 = s3 - s2;
-    return v0.map((a, j) => h00 * a + h10 * h * m0[j] + h01 * v1[j] + h11 * h * m1[j]);
-  }
+  // Du salon à la page : la caméra s'approche de l'étagère pendant que le fond passe au jaune clair.
+  const WIDE = [[-2, 122, 24, 300, 262, 17, 6, 0.12, 0.03], [10, 146, 20, 176, 150, 9, 7, 0.04, 0.01]];
+  const TALL = [[-4, 152, 0, 172, 150, 10, 4, 0, -0.23], [0, 150, 14, 104, 110, 5, 7, 0, -0.1]];
 
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
   addEventListener('pointermove', (e) => {
@@ -1975,138 +1481,49 @@
   }, { passive: true });
 
   function setCamera(p) {
-    const portrait = W / H < 0.85;
-    const v = spline(portrait ? KEYS_PORTRAIT : KEYS, p);
+    const [from, to] = W / H < 0.85 ? TALL : WIDE;
+    const k = smooth(p / 0.62);
+    const v = from.map((a, i) => lerp(a, to[i], k));
     const vfov = 46 * DEG;
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * (W / H));
     const dist = Math.max(v[3] / 2 / Math.tan(hfov / 2), v[4] / 2 / Math.tan(vfov / 2));
-    const calm = 1 - smooth(seg(p, 0.6, 0.78));
-    const yaw = (v[5] + pointer.x * 3.2 * calm + Math.sin(S.t * 0.23) * 0.6 * calm) * DEG;
-    const pitch = Math.min(89.6, v[6] + pointer.y * 1.6 * calm + Math.sin(S.t * 0.31) * 0.3 * calm) * DEG;
+    const yaw = (v[5] + pointer.x * 3.2 + Math.sin(S.t * 0.23) * 0.6) * DEG;
+    const pitch = (v[6] + pointer.y * 1.6 + Math.sin(S.t * 0.31) * 0.3) * DEG;
     const T = [v[0], v[1], v[2]];
     const dir = [Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch)];
     cam.set(add(T, mul(dir, dist)), yaw, pitch, vfov, v[7], v[8]);
   }
 
-  function animateJars(p) {
-    for (const j of jars) { j.dim = 0; j.glow = 0; j.jiggle = null; }
-    const t = target;
-    const hop = bump(p, 0.296, 0.31, 0.338, 0.352);
-    const land = seg(p, 0.338, 0.36);
-    const lift = smooth(seg(p, 0.37, 0.47));
-    t.dz = 26 * lift;
-    t.dy = 3 * lift + Math.sin(Math.PI * seg(p, 0.37, 0.47)) * 4;
-    t.spin = -0.38 * Math.sin(Math.PI * seg(p, 0.38, 0.5));
-    t.squash = Math.sin(Math.PI * seg(p, 0.349, 0.37)) * 0.9 * (1 - seg(p, 0.349, 0.37) * 0.3) + Math.sin(Math.PI * seg(p, 0.465, 0.49)) * 0.6;
-    const L = t.lidS;
-    const twist = inOut(seg(p, 0.5, 0.565));
-    const pop = seg(p, 0.565, 0.6);
-    const fly = seg(p, 0.598, 0.68);
-    L.twist = -twist * TAU * 1.5 - fly * 4;
-    L.lift = hop * 7 + twist * 1.2 + outBack(pop, 2.2) * 6 * (1 - fly);
-    L.tiltZ = -0.32 * hop + -0.25 * outBack(pop) - 1.6 * inCubic(fly);
-    L.tiltX = 0.2 * hop + 0.18 * pop + 0.6 * fly;
-    const fe = inCubic(fly);
-    L.off = [fe * 70, fe * 55, fe * 34];
-    L.gone = fly >= 1;
-    t.glow = smooth(seg(p, 0.565, 0.64));
-    t.jiggle = (i) => Math.sin(Math.PI * seg(p, 0.566 + (i % 3) * 0.006, 0.6 + (i % 3) * 0.006)) * 1.2 + (land > 0 && land < 1 && i < 3 ? Math.sin(Math.PI * land) * 0.4 : 0);
-    const focus = smooth(seg(p, 0.37, 0.46));
-    for (const j of jars) if (j !== t) j.dim = focus * 0.55;
-    const gh = 1.32 * t.w;
-    S.mouth = [t.x + t.dx, t.y + t.dy + gh + 1, t.z + t.dz];
-    S.glow = t.glow;
-    S.exposure = 1 + t.glow * 0.25;
-    S.phone = seg(p, 0.03, 0.07) * (1 - seg(p, 0.26, 0.32)) + 0.12;
-  }
-
-  function drawVignette(p) {
+  function drawVignette(dawn) {
     const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.25, W / 2, H / 2, Math.hypot(W, H) * 0.62);
-    const k = 0.7 + 0.15 * smooth(seg(p, 0.37, 0.46)) - 0.45 * S.glow;
     g.addColorStop(0, 'rgba(8,5,3,0)');
-    g.addColorStop(1, `rgba(8,5,3,${clamp01(k)})`);
+    g.addColorStop(1, `rgba(8,5,3,${0.7 * (1 - dawn)})`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
   }
 
-  const SOUNDS = [];
-  {
-    const step = (CHAT_T1 - CHAT_T0) / CHAT.length;
-    const melody = [0, 2, 1, 3, 2, 4, 3, 5, 4, 6, 5, 7, 6, 7];
-    CHAT.forEach((m, i) => SOUNDS.push([CHAT_T0 + (i + 0.12) * step, m.link ? 'msgLink' : m.me ? 'msgMe' : 'msg', melody[i % melody.length], 0.3]));
-    SOUNDS.push([RESCUE, 'sparkle', 1, 0.25], [0.258, 'glide', 1, 0], [0.3, 'pop', 1, 0], [0.336, 'poc', 1, 0], [0.352, 'lid', 1, 0], [0.468, 'clink', 1, 0]);
-    for (let k = 0; k < 10; k++) SOUNDS.push([0.503 + k * 0.0062, 'tick', 1 + k * 0.03, 0]);
-    SOUNDS.push([0.572, 'pop', 1.25, 0], [0.586, 'harp', 1, 0], [0.79, 'chime', 1, 0]);
-    for (const it of inner) {
-      const q = (it.d - 60) / 1300;
-      if (q > 0 && q < 1) SOUNDS.push([0.815 + q * 0.135, 'pass', 0.85 + (it.r - 70) / 400, Math.cos(it.a + q * 0.8) * 0.75]);
-    }
-    SOUNDS.push([0.955, 'arrive', 1, 0]);
-    SOUNDS.sort((a, b) => a[0] - b[0]);
-  }
-  let lastSoundP = 0;
-  function sounds(p) {
-    const audio = window.BocalSound;
-    if (audio && p > lastSoundP && p - lastSoundP < 0.04) {
-      for (const [at, name, k, pan] of SOUNDS) if (lastSoundP < at && p >= at) audio.play(name, k, pan);
-    }
-    lastSoundP = p;
-  }
+  const dawnOf = (p) => smooth(seg(p, 0.06, 0.5));
+  const veilOf = (p) => smooth(seg(p, 0.18, 0.62));
 
   function render(p) {
-    if (W < 2 || H < 2) return;
-    S.p = p;
+    if (W < 2 || H < 2 || veilOf(p) >= 0.999) return;
+    const dawn = dawnOf(p);
+    S.exposure = 1 + dawn * 0.8;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const inside = smooth(seg(p, 0.815, 0.838));
-    if (inside < 1) {
-      animateJars(p);
-      setCamera(Math.min(p, 0.84));
-      LIGHTS = lights();
-      const flying = flyingLink();
-      drawRoom();
-      drawChat();
-      drawBadge();
-      drawFlying(flying);
-      drawSparks();
-      drawVignette(p);
-    }
-    if (inside > 0) drawInside(seg(p, 0.815, 0.95), inside);
-    const flash = smooth(seg(p, 0.905, 0.955));
-    if (flash > 0) {
-      ctx.fillStyle = `rgba(251,243,228,${flash})`;
+    setCamera(p);
+    LIGHTS = lights();
+    drawRoom();
+    drawVignette(dawn);
+    if (dawn > 0) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = `rgba(196,128,44,${dawn * 0.85})`;
       ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
     }
   }
 
-  const captions = [...document.querySelectorAll('[data-show]')].map((el) => {
-    const [a, b] = el.dataset.show.split(',').map(Number);
-    return { el, a, b, on: null };
-  });
-  const BEATS = [0, 0.212, 0.372, 0.492, 0.7];
-  const BEAT_MS = [2600, 2300, 1700, 2500, 2700];
-  const beatButtons = [...document.querySelectorAll('[data-beat]')];
-  const dockNext = document.querySelector('.dock-next');
-  const dockBack = document.querySelector('.dock-back');
-  const DOCK_LABELS = t('dock');
-  let pilot = null, shownBeat = -1;
-  const loader = document.getElementById('loader');
-  let introReady = !loader;
-
-  function markBeat(p) {
-    let best = 0;
-    for (let i = 1; i < BEATS.length; i++) if (Math.abs(BEATS[i] - p) < Math.abs(BEATS[best] - p)) best = i;
-    if (best === shownBeat) return;
-    shownBeat = best;
-    beatButtons.forEach((b, i) => (i === best ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current')));
-    if (dockNext) {
-      dockNext.querySelector('.dock-label').textContent = DOCK_LABELS[best];
-      dockNext.querySelector('.dock-count').textContent = `${best + 1} / ${BEATS.length}`;
-      dockBack.classList.toggle('is-hidden', best === 0);
-    }
-  }
-
-  const stageEl = canvas.closest('.stage') || journey;
-  let lastVar = -1, inRoom = null;
+  const stageEl = canvas.closest('.stage');
+  let lastVar = -1, inRoom = null, journeyVisible = true;
 
   function setInRoom(value) {
     if (value === inRoom) return;
@@ -2115,16 +1532,13 @@
   }
 
   function updateDom(p) {
-    for (const c of introReady ? captions : []) {
-      const on = p >= c.a && p <= c.b;
-      if (on !== c.on) { c.on = on; c.el.classList.toggle('is-on', on); }
-    }
     if (Math.abs(p - lastVar) > 0.0002) {
       lastVar = p;
       stageEl.style.setProperty('--journey', p.toFixed(4));
+      stageEl.style.setProperty('--veil', veilOf(p).toFixed(4));
+      stageEl.classList.toggle('is-past', p > 0.16);
     }
-    setInRoom(p < 0.9 && journeyVisible);
-    markBeat(p);
+    setInRoom(p < 0.4 && journeyVisible);
   }
 
   const MAX_PIXELS = 2.3e6;
@@ -2156,9 +1570,8 @@
     return total > 0 ? clamp01((scrollY - journeyTop) / total) : 0;
   }
 
-  let journeyVisible = true;
   measureJourney();
-  let current = frozen ?? scrollProgress();
+  let current = scrollProgress();
   let lastTime = performance.now();
   let running = false;
   let cost = 6, drawn = 0, skip = false;
@@ -2181,9 +1594,9 @@
     S.t += dt;
     pointer.x += (pointer.tx - pointer.x) * (1 - Math.exp(-dt * 3));
     pointer.y += (pointer.ty - pointer.y) * (1 - Math.exp(-dt * 3));
-    const goal = frozen ?? scrollProgress();
-    current += (goal - current) * (1 - Math.exp(-dt * (pilot ? 16 : 6.5)));
-    if (Math.abs(goal - current) < 0.00005) current = goal;
+    const goal = scrollProgress();
+    current += (goal - current) * (1 - Math.exp(-dt * 9));
+    if (Math.abs(goal - current) < 0.0005) current = goal;
     const idle = current === goal && Math.abs(pointer.tx - pointer.x) < 0.002 && Math.abs(pointer.ty - pointer.y) < 0.002;
     skip = idle && !skip;
     if (!skip) {
@@ -2198,7 +1611,6 @@
       if (++drawn % 45 === 0) adapt();
     }
     updateDom(current);
-    sounds(current);
     if (journeyVisible) requestAnimationFrame(frame);
     else running = false;
   }
@@ -2214,12 +1626,12 @@
     resize();
     S.t = 2;
     render(0);
-    updateDom(0);
+    updateDom(scrollProgress());
   }
 
   new ResizeObserver(() => {
     measureJourney();
-    if (resize() || !running) render(current);
+    if (resize() || !running) render(reduceMotion.matches ? 0 : current);
   }).observe(canvas);
   new IntersectionObserver((entries) => {
     journeyVisible = entries[0].isIntersecting;
@@ -2228,165 +1640,18 @@
   }).observe(journey);
 
   resize();
-  document.fonts.ready.then(() => { labelWidths.clear(); for (const k in artCache) delete artCache[k]; measureJourney(); if (!running) render(current); });
+  document.fonts.ready.then(() => {
+    labelWidths.clear();
+    for (const k in artCache) delete artCache[k];
+    measureJourney();
+    if (!running) render(reduceMotion.matches ? 0 : current);
+  });
   addEventListener('load', measureJourney);
-  for (const img of Object.values(dishes)) img.addEventListener('load', () => { if (!running) render(current); });
+  for (const img of Object.values(dishes)) img.addEventListener('load', () => { if (!running) render(reduceMotion.matches ? 0 : current); });
 
   if (reduceMotion.matches) {
-    document.documentElement.classList.add('reduce-motion');
     still();
     document.fonts.ready.then(still);
+    addEventListener('scroll', () => updateDom(scrollProgress()), { passive: true });
   } else start();
-
-  const endY = () => journeyTop + journeyHeight;
-  const beatY = (i) => (i >= BEATS.length ? endY() : journeyTop + BEATS[i] * Math.max(0, journeyHeight - innerHeight));
-  const ease = (u) => u * u * u * (u * (u * 6 - 15) + 10);
-  let queued = 0, lastWheel = 0, touch = null, settleTimer = 0;
-
-  function nearestBeat() {
-    let best = 0, dist = Infinity;
-    for (let i = 0; i <= BEATS.length; i++) {
-      const d = Math.abs(beatY(i) - scrollY);
-      if (d < dist) { dist = d; best = i; }
-    }
-    return best;
-  }
-
-  function pilotFrame(now) {
-    if (!pilot) return;
-    const u = clamp01((now - pilot.t0) / pilot.dur);
-    window.scrollTo(0, pilot.from + (pilot.to - pilot.from) * ease(u));
-    if (u < 1) {
-      requestAnimationFrame(pilotFrame);
-      return;
-    }
-    pilot = null;
-    document.documentElement.style.scrollBehavior = '';
-    if (queued) {
-      const dir = queued;
-      queued = 0;
-      go(dir);
-    }
-  }
-
-  function pilotTo(i, dur) {
-    i = clamp(i, 0, BEATS.length);
-    const from = scrollY, to = beatY(i);
-    if (Math.abs(to - from) < 2) return;
-    const running = pilot !== null;
-    document.documentElement.style.scrollBehavior = 'auto';
-    pilot = { from, to, i, dur, t0: performance.now() };
-    if (!running) requestAnimationFrame(pilotFrame);
-  }
-
-  function go(dir) {
-    if (!introReady) return;
-    if (pilot) {
-      queued = dir;
-      return;
-    }
-    const from = nearestBeat();
-    const to = clamp(from + dir, 0, BEATS.length);
-    if (to === from) return;
-    pilotTo(to, BEAT_MS[Math.min(from, to)] * (dir < 0 ? 0.7 : 1));
-  }
-
-  function handles(dir) {
-    if (frozen !== null || reduceMotion.matches) return false;
-    if (pilot) return true;
-    const end = endY();
-    if (scrollY < end - 4) return true;
-    return dir < 0 && scrollY <= end + 6;
-  }
-
-  addEventListener('wheel', (e) => {
-    if (e.ctrlKey || Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
-    const dir = Math.sign(e.deltaY);
-    if (!dir || !handles(dir)) return;
-    e.preventDefault();
-    const now = performance.now(), gap = now - lastWheel;
-    lastWheel = now;
-    if (gap < 200 || Math.abs(e.deltaY) < 2) return;
-    go(dir);
-  }, { passive: false });
-
-  addEventListener('keydown', (e) => {
-    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
-    const t = e.target;
-    if (t && t.closest && t.closest('input, textarea, select, [contenteditable]')) return;
-    if (e.key === ' ' && t && t.closest && t.closest('button, a')) return;
-    const k = e.key;
-    const dir = k === 'ArrowDown' || k === 'PageDown' || (k === ' ' && !e.shiftKey) ? 1
-      : k === 'ArrowUp' || k === 'PageUp' || (k === ' ' && e.shiftKey) ? -1 : 0;
-    if (!dir || !handles(dir)) return;
-    e.preventDefault();
-    if (!e.repeat) go(dir);
-  });
-
-  addEventListener('touchstart', (e) => {
-    touch = e.touches.length === 1 ? { y: e.touches[0].clientY, decided: null, done: false } : null;
-  }, { passive: true });
-  addEventListener('touchmove', (e) => {
-    if (!touch) return;
-    const dy = touch.y - e.touches[0].clientY;
-    if (touch.decided === null) {
-      if (Math.abs(dy) < 2) return;
-      touch.decided = handles(Math.sign(dy));
-    }
-    if (!touch.decided) return;
-    e.preventDefault();
-    if (!touch.done && Math.abs(dy) > 26) {
-      touch.done = true;
-      go(Math.sign(dy));
-    }
-  }, { passive: false });
-  addEventListener('touchend', () => { touch = null; settle(); }, { passive: true });
-
-  function settle() {
-    clearTimeout(settleTimer);
-    settleTimer = setTimeout(() => {
-      if (pilot || touch || frozen !== null || reduceMotion.matches) return;
-      if (scrollY >= endY() - 4) return;
-      const i = nearestBeat();
-      if (Math.abs(beatY(i) - scrollY) > 3) pilotTo(i, 900);
-    }, 180);
-  }
-  addEventListener('scroll', () => { if (!pilot) settle(); }, { passive: true });
-
-  if (dockNext) {
-    dockNext.addEventListener('click', () => go(1));
-    dockBack.addEventListener('click', () => go(-1));
-  }
-
-  beatButtons.forEach((b) => b.addEventListener('click', () => {
-    const i = +b.dataset.beat;
-    pilotTo(i, 700 + 450 * Math.abs(i - nearestBeat()));
-  }));
-
-  if (loader) {
-    const bar = loader.querySelector('.loader-bar i');
-    const tasks = [document.fonts.ready, ...Object.values(dishes).map((img) => (img.decode ? img.decode() : Promise.resolve()))];
-    let loaded = 0;
-    const tick = () => {
-      loaded++;
-      bar.style.transform = `scaleX(${loaded / tasks.length})`;
-    };
-    tasks.forEach((t) => Promise.resolve(t).then(tick, tick));
-    const minimum = new Promise((r) => setTimeout(r, 900));
-    const timeout = new Promise((r) => setTimeout(r, 5000));
-    Promise.race([Promise.all([Promise.allSettled(tasks), minimum]), timeout]).then(() => {
-      labelWidths.clear();
-      measureJourney();
-      resize();
-      if (frozen === null && !reduceMotion.matches) current = scrollProgress();
-      render(reduceMotion.matches ? 0 : current);
-      introReady = true;
-      for (const c of captions) c.on = null;
-      updateDom(reduceMotion.matches ? 0 : current);
-      loader.classList.add('is-done');
-      setTimeout(() => loader.remove(), 900);
-    });
-  }
-
-  window.BocalRoom = { setProgress: (p) => { current = p; render(p); updateDom(p); } };
 })();

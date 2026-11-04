@@ -23,25 +23,12 @@
 <link rel="preload" href="../fonts/DMSans-ExtraBold.woff" as="font" type="font/woff" crossorigin>
 <link rel="preload" href="../fonts/DMSans-Bold.woff" as="font" type="font/woff" crossorigin>
 <link rel="stylesheet" href="../style.css">
-<noscript><style>.loader{display:none}.cap-hero{opacity:1;visibility:visible;transform:translateY(-50%)}.journey{height:100svh}.reveal{opacity:1;transform:none}</style></noscript>
+<noscript><style>.journey{height:100svh}.welcome{margin-top:0}.veil,.scroll-cue{display:none}.reveal{opacity:1;transform:none}</style></noscript>
 <script src="../i18n.js" defer></script>
 <script src="../site.js" defer></script>
 <script src="../room.js" defer></script>
 </head>
 <body class="in-room">
-<div class="loader" id="loader" aria-hidden="true">
-  <svg class="loader-jar" viewBox="0 0 100 132">
-    <defs><linearGradient id="loader-ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#F9A825"/><stop offset=".5" stop-color="#E1306C"/><stop offset="1" stop-color="#7B3FE4"/></linearGradient></defs>
-    <rect x="6" y="24" width="88" height="104" rx="27" class="ld-glass"/>
-    <rect x="15" y="36" width="6" height="30" rx="3" fill="#fff" opacity=".7"/>
-    <rect x="21" y="94" width="24" height="24" rx="7" fill="url(#loader-ig)" class="ld-tk ld-tk1"/>
-    <rect x="52" y="96" width="24" height="24" rx="7" fill="#FCE8B2" class="ld-tk ld-tk2"/>
-    <rect x="37" y="68" width="24" height="24" rx="7" fill="#D6EBD3" class="ld-tk ld-tk3"/>
-    <g class="ld-lid"><rect x="19" y="7" width="62" height="17" rx="5"/></g>
-  </svg>
-  <p class="loader-word">bocal</p>
-  <div class="loader-bar"><i></i></div>
-</div>
 <a class="skip-link" href="#bienvenue">Naar de inhoud</a>
 
 <header class="top" id="top">
@@ -66,7 +53,7 @@
     <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.6 7.6 0 0 1 0 11"/><path class="mute" d="M16 9.5l5 5m0-5l-5 5"/></svg>
     <span class="sound-label">Geluid</span>
   </button>
-  <a class="btn btn-small store-link" href="#telecharger" data-store>Binnenkort op Android</a>
+  <a class="btn btn-small store-link" href="#telecharger">Downloaden</a>
 </header>
 
 <main>
@@ -75,56 +62,26 @@
       <canvas id="room" aria-hidden="true"></canvas>
       <div class="grain" aria-hidden="true"></div>
 
-      <div class="cap cap-hero" data-show="0,0.055">
+      <div class="hero">
         <p class="eyebrow"><span class="dot"></span> bocal · de bokaal voor je links</p>
         <h1>De links die jullie elkaar sturen, <mark>eindelijk netjes.</mark></h1>
         <p class="lead">Restaurants, recepten, video's, weekendideeën: bewaar ze samen in bokalen en vind ze terug met één tik.</p>
         <div class="actions">
-          <a class="btn btn-paper" href="#telecharger" data-store>
+          <a class="btn btn-paper" href="https://play.google.com/store/apps/details?id=be.gvdh.bocal">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>
-            <span data-store-label>Binnenkort op Google Play</span>
+            <span>Download op Google Play</span>
           </a>
-          <a class="btn btn-ghost" href="#bienvenue">Bekijk de app</a>
+          <a class="btn btn-ghost" href="https://apps.apple.com/app/id6829795671">Binnenkort in de App Store</a>
         </div>
         <ul class="pills" aria-label="Beloftes">
           <li>Geen account</li><li>Geen reclame</li><li>Geen trackers</li>
         </ul>
       </div>
 
-      <div class="cap cap-story" data-show="0.085,0.222">
-        <p class="cap-title">Dat restaurant dat Léa je stuurde?</p>
-        <p class="cap-sub">Het zit ergens, onder 128 berichten.</p>
-      </div>
-      <div class="cap cap-story" data-show="0.25,0.385">
-        <p class="cap-title">Stop het in een <mark>bokaal</mark>.</p>
-        <p class="cap-sub">Eén tik vanuit eender welke app, en hij raakt nooit meer zoek.</p>
-      </div>
-      <div class="cap cap-story" data-show="0.395,0.505">
-        <p class="cap-title">Een bokaal voor elke <mark>goesting</mark>.</p>
-        <p class="cap-sub">Restaurants, recepten, series, cadeau-ideeën… om samen te vullen.</p>
-      </div>
-      <div class="cap cap-story" data-show="0.6,0.74">
-        <p class="cap-title">Kom eens <mark>binnenkijken</mark>.</p>
-      </div>
-
-      <div class="dock" data-show="0,0.8">
-        <button class="dock-back is-hidden" type="button" data-step="-1" aria-label="Vorige stap">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m0 0l-6 6m6-6l6 6"/></svg>
-        </button>
-        <button class="dock-next" type="button" data-step="1">
-          <span class="dock-label">Aan de slag</span>
-          <span class="dock-count">1 / 5</span>
-          <span class="dock-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14m0 0l-6-6m6 6l6-6"/></svg></span>
-        </button>
-      </div>
-      <a class="skip-intro" href="#bienvenue" data-show="0.02,0.86">Intro overslaan</a>
-      <nav class="beats" data-show="0,0.86" aria-label="Stappen van de intro">
-        <button type="button" data-beat="0" aria-label="De woonkamer"></button>
-        <button type="button" data-beat="1" aria-label="Het gesprek"></button>
-        <button type="button" data-beat="2" aria-label="De opgeborgen link"></button>
-        <button type="button" data-beat="3" aria-label="De bokaal"></button>
-        <button type="button" data-beat="4" aria-label="De open bokaal"></button>
-      </nav>
+      <a class="scroll-cue" href="#bienvenue" aria-hidden="true" tabindex="-1">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14m0 0l-6-6m6 6l6-6"/></svg>
+      </a>
+      <div class="veil" aria-hidden="true"></div>
     </div>
   </section>
 
@@ -239,7 +196,7 @@
           <h2 class="reveal" style="--d:1">Samen, <mark>live</mark>.</h2>
           <p class="reveal" style="--d:2">Iedereen voegt zijn links toe en iedereen ziet ze meteen binnenkomen. Je weet wie wat toevoegde, en wanneer. Gedaan met ‘kan je me die link nog eens sturen?’.</p>
           <div class="live-feed reveal" style="--d:3" aria-live="off">
-            <p class="feed-title">Wat er gebeurde</p>
+            <p class="feed-title">In de bokaal Restos</p>
             <ul id="live-feed"></ul>
           </div>
         </div>
@@ -267,7 +224,7 @@
             <div class="invite-bubble" style="--z:110px">
               <span class="ib-who">Max</span>
               <span class="ib-text">Kom in mijn bokaal Restos 🍜</span>
-              <span class="ib-card"><b>Doe mee met mijn bokaal</b><small>Code K7QM-P3XA</small></span>
+              <span class="ib-card"><b>Doe mee met mijn bokaal</b><small>Code K7QMP-3XAB4</small></span>
             </div>
             <div class="invite-members" style="--z:80px">
               <span class="av" style="--c:#2B1D12;--t:#FBF3E4">M</span><span class="av" style="--c:#B197FC">L</span><span class="av" style="--c:#8CC5F0">S</span><span class="av" style="--c:#F2C14E">I</span><span class="av" style="--c:#F9DDD5">N</span>
@@ -291,8 +248,8 @@
             <div class="tag-row" id="tag-row"></div>
           </div>
           <div class="tile tile-feed reveal" style="--d:2">
-            <h3>Wat er gebeurde</h3>
-            <p>De laatste links die de anderen toevoegden, meteen op het startscherm.</p>
+            <h3>Wie wat toevoegde</h3>
+            <p>Elke link bewaart de voornaam van wie hem toevoegde, en wanneer.</p>
             <div class="mini-feed">
               <div class="mf-row"><img src="../img/dishes/sushi.webp" alt="" width="96" height="96"><span><b>Sam</b> voegde ‘Sushi: het adresje dat we voor onszelf houden’ toe aan Restos 🍜 <i>· zonet</i></span></div>
               <div class="mf-row"><img src="../img/dishes/burger.webp" alt="" width="96" height="96"><span><b>Inès</b> voegde ‘De smashburger waar iedereen over praat’ toe aan Restos 🍜 <i>· zonet</i></span></div>
@@ -376,11 +333,11 @@
         </details>
         <details class="reveal">
           <summary>Verlies ik alles als ik van telefoon verander?</summary>
-          <p>Nee. Installeer Bocal, tik op ‘Ik heb al bokalen’, voer de code van een bokaal in en kies je voornaam: je krijgt je plaats en je links terug.</p>
+          <p>Nee. Op Android met hetzelfde Google-account (je back-up hersteld), of op iPhone met dezelfde Apple-account (iCloud-sleutelhanger aan), vindt Bocal je vanzelf terug. Maak anders vooraf je herstelcode (in de instellingen) en tik op ‘Ik heb een herstelcode’ op de nieuwe telefoon: je krijgt je account en al je bokalen terug.</p>
         </details>
         <details class="reveal">
           <summary>En op iPhone?</summary>
-          <p>Bocal komt eerst uit op Android.</p>
+          <p>Ja, binnenkort: de iPhone-app komt in de <a href="https://apps.apple.com/app/id6829795671">App Store</a> vlak na Android. Met je herstelcode stap je over van Android naar iPhone zonder iets te verliezen.</p>
         </details>
       </div>
     </div>
@@ -395,10 +352,11 @@
       <h2 class="reveal">Je eerste bokaal <mark>wacht op je</mark>.</h2>
       <p class="lead reveal" style="--d:1">Installeer Bocal, maak je eerste bokaal en nodig de mensen uit met wie je de meeste links uitwisselt.</p>
       <div class="actions reveal" style="--d:2">
-        <a class="btn" href="#telecharger" data-store>
+        <a class="btn" href="https://play.google.com/store/apps/details?id=be.gvdh.bocal">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>
-          <span data-store-label>Binnenkort op Google Play</span>
+          <span>Download op Google Play</span>
         </a>
+        <a class="btn btn-ghost" href="https://apps.apple.com/app/id6829795671">Binnenkort in de App Store</a>
       </div>
       <p class="cta-note reveal" style="--d:3">Al uitgenodigd? Open de link die je kreeg: die brengt je meteen in de bokaal.</p>
     </div>

@@ -23,25 +23,12 @@
 <link rel="preload" href="fonts/DMSans-ExtraBold.woff" as="font" type="font/woff" crossorigin>
 <link rel="preload" href="fonts/DMSans-Bold.woff" as="font" type="font/woff" crossorigin>
 <link rel="stylesheet" href="style.css">
-<noscript><style>.loader{display:none}.cap-hero{opacity:1;visibility:visible;transform:translateY(-50%)}.journey{height:100svh}.reveal{opacity:1;transform:none}</style></noscript>
+<noscript><style>.journey{height:100svh}.welcome{margin-top:0}.veil,.scroll-cue{display:none}.reveal{opacity:1;transform:none}</style></noscript>
 <script src="i18n.js" defer></script>
 <script src="site.js" defer></script>
 <script src="room.js" defer></script>
 </head>
 <body class="in-room">
-<div class="loader" id="loader" aria-hidden="true">
-  <svg class="loader-jar" viewBox="0 0 100 132">
-    <defs><linearGradient id="loader-ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#F9A825"/><stop offset=".5" stop-color="#E1306C"/><stop offset="1" stop-color="#7B3FE4"/></linearGradient></defs>
-    <rect x="6" y="24" width="88" height="104" rx="27" class="ld-glass"/>
-    <rect x="15" y="36" width="6" height="30" rx="3" fill="#fff" opacity=".7"/>
-    <rect x="21" y="94" width="24" height="24" rx="7" fill="url(#loader-ig)" class="ld-tk ld-tk1"/>
-    <rect x="52" y="96" width="24" height="24" rx="7" fill="#FCE8B2" class="ld-tk ld-tk2"/>
-    <rect x="37" y="68" width="24" height="24" rx="7" fill="#D6EBD3" class="ld-tk ld-tk3"/>
-    <g class="ld-lid"><rect x="19" y="7" width="62" height="17" rx="5"/></g>
-  </svg>
-  <p class="loader-word">bocal</p>
-  <div class="loader-bar"><i></i></div>
-</div>
 <a class="skip-link" href="#bienvenue">Aller au contenu</a>
 
 <header class="top" id="top">
@@ -66,7 +53,7 @@
     <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.6 7.6 0 0 1 0 11"/><path class="mute" d="M16 9.5l5 5m0-5l-5 5"/></svg>
     <span class="sound-label">Son</span>
   </button>
-  <a class="btn btn-small store-link" href="#telecharger" data-store>Bientôt sur Android</a>
+  <a class="btn btn-small store-link" href="#telecharger">Télécharger</a>
 </header>
 
 <main>
@@ -75,56 +62,26 @@
       <canvas id="room" aria-hidden="true"></canvas>
       <div class="grain" aria-hidden="true"></div>
 
-      <div class="cap cap-hero" data-show="0,0.055">
+      <div class="hero">
         <p class="eyebrow"><span class="dot"></span> bocal · le bocal des liens</p>
         <h1>Les liens qu'on s'envoie, <mark>enfin rangés.</mark></h1>
         <p class="lead">Restos, recettes, vidéos, idées de week-end : range-les à plusieurs dans des bocaux, et retrouve-les en un geste.</p>
         <div class="actions">
-          <a class="btn btn-paper" href="#telecharger" data-store>
+          <a class="btn btn-paper" href="https://play.google.com/store/apps/details?id=be.gvdh.bocal">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>
-            <span data-store-label>Bientôt sur Google Play</span>
+            <span>Télécharger sur Google Play</span>
           </a>
-          <a class="btn btn-ghost" href="#bienvenue">Voir l'app</a>
+          <a class="btn btn-ghost" href="https://apps.apple.com/app/id6829795671">Bientôt sur l'App Store</a>
         </div>
         <ul class="pills" aria-label="Promesses">
           <li>Ni compte</li><li>Ni pub</li><li>Ni traceur</li>
         </ul>
       </div>
 
-      <div class="cap cap-story" data-show="0.085,0.222">
-        <p class="cap-title">Le resto que Léa t'a envoyé ?</p>
-        <p class="cap-sub">Il est quelque part, sous 128 messages.</p>
-      </div>
-      <div class="cap cap-story" data-show="0.25,0.385">
-        <p class="cap-title">Range-le dans un <mark>bocal</mark>.</p>
-        <p class="cap-sub">Un geste depuis n'importe quelle app, et il ne se perd plus.</p>
-      </div>
-      <div class="cap cap-story" data-show="0.395,0.505">
-        <p class="cap-title">Un bocal pour chaque <mark>envie</mark>.</p>
-        <p class="cap-sub">Restos, recettes, séries, idées cadeaux… à remplir à plusieurs.</p>
-      </div>
-      <div class="cap cap-story" data-show="0.6,0.74">
-        <p class="cap-title">Viens voir <mark>dedans</mark>.</p>
-      </div>
-
-      <div class="dock" data-show="0,0.8">
-        <button class="dock-back is-hidden" type="button" data-step="-1" aria-label="Étape précédente">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m0 0l-6 6m6-6l6 6"/></svg>
-        </button>
-        <button class="dock-next" type="button" data-step="1">
-          <span class="dock-label">C'est parti</span>
-          <span class="dock-count">1 / 5</span>
-          <span class="dock-arrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14m0 0l-6-6m6 6l6-6"/></svg></span>
-        </button>
-      </div>
-      <a class="skip-intro" href="#bienvenue" data-show="0.02,0.86">Passer l'intro</a>
-      <nav class="beats" data-show="0,0.86" aria-label="Étapes de l'intro">
-        <button type="button" data-beat="0" aria-label="Le salon"></button>
-        <button type="button" data-beat="1" aria-label="La conversation"></button>
-        <button type="button" data-beat="2" aria-label="Le lien rangé"></button>
-        <button type="button" data-beat="3" aria-label="Le bocal"></button>
-        <button type="button" data-beat="4" aria-label="Le bocal ouvert"></button>
-      </nav>
+      <a class="scroll-cue" href="#bienvenue" aria-hidden="true" tabindex="-1">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14m0 0l-6-6m6 6l6-6"/></svg>
+      </a>
+      <div class="veil" aria-hidden="true"></div>
     </div>
   </section>
 
@@ -239,7 +196,7 @@
           <h2 class="reveal" style="--d:1">À plusieurs, <mark>en direct</mark>.</h2>
           <p class="reveal" style="--d:2">Chacun ajoute ses liens, et tout le monde les voit arriver tout de suite. Tu sais qui a ajouté quoi, et quand. Fini le « tu peux me renvoyer le lien ? ».</p>
           <div class="live-feed reveal" style="--d:3" aria-live="off">
-            <p class="feed-title">Ce qui s'est passé</p>
+            <p class="feed-title">Dans le bocal Restos</p>
             <ul id="live-feed"></ul>
           </div>
         </div>
@@ -267,7 +224,7 @@
             <div class="invite-bubble" style="--z:110px">
               <span class="ib-who">Max</span>
               <span class="ib-text">Viens dans mon bocal Restos 🍜</span>
-              <span class="ib-card"><b>Rejoins mon bocal</b><small>Code K7QM-P3XA</small></span>
+              <span class="ib-card"><b>Rejoins mon bocal</b><small>Code K7QMP-3XAB4</small></span>
             </div>
             <div class="invite-members" style="--z:80px">
               <span class="av" style="--c:#2B1D12;--t:#FBF3E4">M</span><span class="av" style="--c:#B197FC">L</span><span class="av" style="--c:#8CC5F0">S</span><span class="av" style="--c:#F2C14E">I</span><span class="av" style="--c:#F9DDD5">N</span>
@@ -291,8 +248,8 @@
             <div class="tag-row" id="tag-row"></div>
           </div>
           <div class="tile tile-feed reveal" style="--d:2">
-            <h3>Ce qui s'est passé</h3>
-            <p>Les derniers liens ajoutés par les autres, dès l'accueil.</p>
+            <h3>Qui a ajouté quoi</h3>
+            <p>Chaque lien garde le prénom de qui l'a ajouté, et quand.</p>
             <div class="mini-feed">
               <div class="mf-row"><img src="img/dishes/sushi.webp" alt="" width="96" height="96"><span><b>Sam</b> a ajouté « Sushis : l'adresse qu'on garde pour nous » dans Restos 🍜 <i>· à l'instant</i></span></div>
               <div class="mf-row"><img src="img/dishes/burger.webp" alt="" width="96" height="96"><span><b>Inès</b> a ajouté « Le smash burger dont tout le monde parle » dans Restos 🍜 <i>· à l'instant</i></span></div>
@@ -376,11 +333,11 @@
         </details>
         <details class="reveal">
           <summary>Je change de téléphone, je perds tout ?</summary>
-          <p>Non. Installe Bocal, touche « J'ai déjà des bocaux », entre le code d'un bocal et choisis ton prénom : tu retrouves ta place et tes liens.</p>
+          <p>Non. Sur Android avec le même compte Google (ta sauvegarde restaurée), ou sur iPhone avec le même identifiant Apple (trousseau iCloud activé), Bocal te retrouve tout seul. Sinon, crée avant ton code de secours (dans les réglages) et touche « J'ai un code de secours » sur le nouveau téléphone : tu retrouves ton compte et tous tes bocaux.</p>
         </details>
         <details class="reveal">
           <summary>Et sur iPhone ?</summary>
-          <p>Bocal sort d'abord sur Android.</p>
+          <p>Oui, bientôt : l'app iPhone arrive sur l'<a href="https://apps.apple.com/app/id6829795671">App Store</a> juste après Android. Avec ton code de secours, tu passes d'Android à iPhone sans rien perdre.</p>
         </details>
       </div>
     </div>
@@ -395,10 +352,11 @@
       <h2 class="reveal">Ton premier bocal <mark>t'attend</mark>.</h2>
       <p class="lead reveal" style="--d:1">Installe Bocal, crée ton premier bocal, et invite les personnes avec qui tu t'envoies le plus de liens.</p>
       <div class="actions reveal" style="--d:2">
-        <a class="btn" href="#telecharger" data-store>
+        <a class="btn" href="https://play.google.com/store/apps/details?id=be.gvdh.bocal">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></svg>
-          <span data-store-label>Bientôt sur Google Play</span>
+          <span>Télécharger sur Google Play</span>
         </a>
+        <a class="btn btn-ghost" href="https://apps.apple.com/app/id6829795671">Bientôt sur l'App Store</a>
       </div>
       <p class="cta-note reveal" style="--d:3">Déjà invité·e ? Ouvre le lien qu'on t'a envoyé : il t'amène directement dans le bocal.</p>
     </div>

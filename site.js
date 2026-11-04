@@ -3,8 +3,6 @@
 
   const { t, base: A, screens: SCREENS } = window.BocalI18n;
 
-  const PLAY_URL = null;
-
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -64,51 +62,15 @@
       tone(freq * 2.76, t, vol * 0.18, decay * 0.35, 1, dest);
       click(freq * 3.2, t, vol * 0.16, 0.02, dest);
     }
-    function bloop(freq, t, vol, dest) {
-      const o = ac.createOscillator();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(freq * 0.78, t);
-      o.frequency.exponentialRampToValueAtTime(freq, t + 0.035);
-      const g = ac.createGain();
-      env(g, t, 0.004, 0.14, vol);
-      o.connect(g).connect(dest);
-      o.start(t);
-      o.stop(t + 0.2);
-      tone(freq * 2, t + 0.012, vol * 0.14, 0.06, 1, dest);
-    }
-    function bell(freq, t, vol, decay, dest) {
-      tone(freq, t, vol, decay, 1, dest, 'triangle', 0.004);
-      tone(freq * 2.01, t, vol * 0.25, decay * 0.45, 1, dest);
-    }
-    function output(pan) {
-      if (!pan || !ac.createStereoPanner) return master;
-      const p = ac.createStereoPanner();
-      p.pan.value = Math.max(-1, Math.min(1, pan));
-      p.connect(master);
-      return p;
-    }
-    const NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.5];
     const sounds = {
-      poc: (t, k, d) => wood(560 * k, t, 0.32, 0.16, d),
-      tick: (t, k, d) => wood(1350 * k, t, 0.09, 0.045, d),
-      lid: (t, k, d) => { wood(300, t, 0.34, 0.2, d); tone(120, t, 0.18, 0.1, 1.6, d); },
-      pop: (t, k, d) => { click(900, t, 0.22, 0.05, d); tone(210, t, 0.2, 0.09, 1.8, d); wood(720 * k, t + 0.035, 0.22, 0.12, d); },
-      chime: (t, k, d) => [784, 988, 1175, 1568].forEach((f, i) => wood(f, t + i * 0.085, 0.14, 0.5, d)),
-      msg: (t, k, d) => bloop(NOTES[Math.round(k) % NOTES.length], t, 0.13, d),
-      msgMe: (t, k, d) => bloop(392, t, 0.12, d),
-      msgLink: (t, k, d) => { bell(1046.5, t, 0.1, 0.35, d); bell(1318.5, t + 0.1, 0.1, 0.55, d); },
-      sparkle: (t, k, d) => [2093, 2637, 3136, 4186].forEach((f, i) => bell(f, t + i * 0.04, 0.03, 0.45, d)),
-      glide: (t, k, d) => [784, 988, 1175].forEach((f, i) => wood(f, t + i * 0.07, 0.09, 0.18, d)),
-      clink: (t, k, d) => { tone(2400, t, 0.05, 0.22, 1, d); tone(3620, t, 0.03, 0.16, 1, d); click(5000, t, 0.025, 0.015, d); },
-      harp: (t, k, d) => [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568].forEach((f, i) => bell(f, t + i * 0.075, 0.06, 1.1, d)),
-      pass: (t, k, d) => bell(1568 * k, t, 0.04, 0.22, d),
-      arrive: (t, k, d) => { wood(261.6, t, 0.18, 0.5, d); [523.25, 659.25, 783.99].forEach((f) => bell(f, t + 0.02, 0.06, 1.4, d)); wood(1046.5, t + 0.12, 0.09, 0.4, d); },
+      poc: (t, k) => wood(560 * k, t, 0.32, 0.16, master),
+      tick: (t, k) => wood(1350 * k, t, 0.09, 0.045, master),
+      pop: (t, k) => { click(900, t, 0.22, 0.05, master); tone(210, t, 0.2, 0.09, 1.8, master); wood(720 * k, t + 0.035, 0.22, 0.12, master); },
     };
     function refresh() {
       for (const b of $$('[data-sound]')) {
         b.setAttribute('aria-pressed', String(on));
         b.setAttribute('aria-label', on ? t('soundOff') : t('soundOn'));
-        b.classList.toggle('needs-tap', on && !unlocked);
       }
     }
     function unlock() {
@@ -116,11 +78,10 @@
       if (ensure()) unlocked = true;
       refresh();
     }
-    function play(name, k = 1, pan = 0) {
+    function play(name, k = 1) {
       if (!on || !unlocked || !ac) return;
       if (ac.state === 'suspended') ac.resume();
-      const fn = sounds[name];
-      if (fn) fn(ac.currentTime + 0.012, k ?? 1, output(pan));
+      sounds[name](ac.currentTime + 0.012, k);
     }
     function setOn(value) {
       on = value;
@@ -133,7 +94,6 @@
     refresh();
     return { play, setOn, unlock, get on() { return on; }, get unlocked() { return unlocked; } };
   })();
-  window.BocalSound = Sound;
   for (const b of $$('[data-sound]')) {
     b.addEventListener('click', () => {
       if (Sound.on && !Sound.unlocked) {
@@ -147,12 +107,6 @@
     Sound.unlock();
   };
   for (const type of ['pointerdown', 'keydown', 'touchend']) addEventListener(type, unlockSound, { capture: true, passive: true });
-
-  if (PLAY_URL) {
-    for (const a of $$('[data-store]')) a.href = PLAY_URL;
-    for (const s of $$('[data-store-label]')) s.textContent = t('storeDownload');
-    for (const a of $$('.store-link')) a.textContent = t('storeShort');
-  }
 
   const measure = document.createElement('canvas').getContext('2d');
   let uid = 0;
